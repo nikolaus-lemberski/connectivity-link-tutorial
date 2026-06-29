@@ -1,0 +1,100 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: keycloak-pgsql-user
+  namespace: keycloak
+  labels:
+    app.kubernetes.io/part-of: connectivity-link-tutorial
+stringData:
+  user: keycloak
+  password: ${KEYCLOAK_DB_PASSWORD}
+  dbname: keycloak
+  host: keycloak-pgsql.keycloak.svc
+  port: "5432"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: keycloak-pgsql-data
+  namespace: keycloak
+  labels:
+    app.kubernetes.io/part-of: connectivity-link-tutorial
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 50Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: keycloak-pgsql
+  namespace: keycloak
+  labels:
+    app.kubernetes.io/part-of: connectivity-link-tutorial
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: keycloak-pgsql
+  template:
+    metadata:
+      labels:
+        app: keycloak-pgsql
+    spec:
+      containers:
+        - name: pgsql
+          image: registry.redhat.io/rhel9/postgresql-16:1-1754433677
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRESQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak-pgsql-user
+                  key: user
+            - name: POSTGRESQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak-pgsql-user
+                  key: password
+            - name: POSTGRESQL_DATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak-pgsql-user
+                  key: dbname
+          readinessProbe:
+            tcpSocket:
+              port: 5432
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+          volumeMounts:
+            - name: pgsql-storage
+              mountPath: /var/lib/pgsql/data
+      volumes:
+        - name: pgsql-storage
+          persistentVolumeClaim:
+            claimName: keycloak-pgsql-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: keycloak-pgsql
+  namespace: keycloak
+  labels:
+    app.kubernetes.io/part-of: connectivity-link-tutorial
+spec:
+  selector:
+    app: keycloak-pgsql
+  ports:
+    - name: data
+      port: 5432
+      targetPort: 5432

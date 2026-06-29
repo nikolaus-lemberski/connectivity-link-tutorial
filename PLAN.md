@@ -50,13 +50,14 @@ connectivity-link-tutorial/
 │   └── route-tls.yaml                # OpenShift Route with TLS passthrough (envsubst)
 ├── 06-keycloak/
 │   ├── README.md                      # Install and configure Keycloak
-│   ├── subscription.yaml             # Keycloak operator subscription
-│   ├── keycloak.yaml                  # Keycloak CR instance
-│   ├── keycloak-realm.yaml            # Realm configuration
-│   └── keycloak-client.yaml           # OIDC client for the tutorial app
+│   ├── namespace.yaml                 # keycloak namespace
+│   ├── subscription.yaml             # RHBK operator subscription + OperatorGroup
+│   ├── postgres.yaml                  # PostgreSQL backend (Secret, PVC, Deployment, Service)
+│   ├── keycloak.yaml                  # Keycloak CR + OpenShift Route (re-encrypt)
+│   └── keycloak-realm.yaml            # KeycloakRealmImport (realm, OIDC client, test user)
 ├── 07-auth-policy/
 │   ├── README.md                      # Protect APIs with AuthPolicy + OIDC
-│   └── auth-policy.yaml              # AuthPolicy CR (OIDC via Keycloak)
+│   └── auth-policy.yaml              # AuthPolicy CR (JWT via Keycloak, envsubst)
 ├── 08-rate-limit-policy/
 │   ├── README.md                      # Rate limit protection
 │   └── rate-limit-policy.yaml         # RateLimitPolicy CR
@@ -124,25 +125,25 @@ connectivity-link-tutorial/
 5. Verify: `curl -sk https://echo.${CLUSTER_DOMAIN}/` returns echo JSON, `oc get certificates` shows READY
 
 **06 - Keycloak Setup**
-1. Install Red Hat build of Keycloak operator via OLM (Subscription + OperatorGroup)
-2. Create a Keycloak CR instance (minimal, single-node for tutorial)
-3. Create a Realm (e.g., `connectivity-link-tutorial`)
-4. Create an OIDC Client for the tutorial application
-   - Client ID: `tutorial-app`
-   - Access type: confidential
-   - Valid redirect URIs matching the gateway host
-5. Create a test user in the realm
-6. Verify: obtain a token via `curl` to the Keycloak token endpoint
+1. Create `keycloak` namespace
+2. Install Red Hat build of Keycloak operator via OLM (`rhbk-operator`, channel `stable-v26.4`)
+3. Deploy PostgreSQL backend (Secret, PVC, Deployment, Service)
+4. Create a Keycloak CR instance (single-node, PostgreSQL, service-CA TLS, `ingress.enabled: false`)
+5. Create an OpenShift Route (re-encrypt) at `sso.${CLUSTER_DOMAIN}`
+6. Create a `KeycloakRealmImport` for the `connectivity-link-tutorial` realm containing:
+   - OIDC Client `tutorial-app` (confidential, secret: `tutorial-app-secret`, direct access grants enabled)
+   - Test user `testuser` / `testuser` with `user` realm role
+   - Realm roles: `user`, `admin`
+7. Verify: obtain a token via `curl` to `https://sso.${CLUSTER_DOMAIN}/realms/connectivity-link-tutorial/protocol/openid-connect/token`
 
 **07 - AuthPolicy**
-1. Create an AuthPolicy targeting the HTTPRoute
-   - Uses OIDC authentication with Keycloak as the identity provider
-   - References the Keycloak issuer URL (`https://<keycloak-host>/realms/<realm>`)
+1. Create an AuthPolicy (`echo-auth`) in `tutorial-app` namespace targeting the `echo` HTTPRoute
+   - Uses JWT authentication with `issuerUrl` pointing to `https://sso.${CLUSTER_DOMAIN}/realms/connectivity-link-tutorial`
+   - Authorino auto-discovers JWKS keys from Keycloak's OIDC discovery endpoint
 2. Verify:
    - Request without token → 401 Unauthorized
-   - Request with expired/invalid token → 401 Unauthorized
-   - Obtain token from Keycloak, send request with Bearer token → 200 OK
-3. (Optional: show authorization rules based on JWT claims/roles)
+   - Request with invalid token → 401 Unauthorized
+   - Obtain token from Keycloak, send request with `Authorization: Bearer <token>` → 200 OK
 
 **08 - RateLimitPolicy**
 1. Create a RateLimitPolicy targeting the HTTPRoute

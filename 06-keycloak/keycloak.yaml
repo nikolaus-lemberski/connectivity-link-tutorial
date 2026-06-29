@@ -1,0 +1,55 @@
+apiVersion: k8s.keycloak.org/v2alpha1
+kind: Keycloak
+metadata:
+  name: keycloak
+  namespace: keycloak
+  labels:
+    app.kubernetes.io/part-of: connectivity-link-tutorial
+spec:
+  instances: 1
+  hostname:
+    hostname: sso.${CLUSTER_DOMAIN}
+    strict: false
+    strictBackchannel: false
+  http:
+    httpEnabled: false
+    tlsSecret: keycloak-tls
+  ingress:
+    enabled: false
+  db:
+    vendor: postgres
+    host: keycloak-pgsql
+    database: keycloak
+    usernameSecret:
+      name: keycloak-pgsql-user
+      key: user
+    passwordSecret:
+      name: keycloak-pgsql-user
+      key: password
+  additionalOptions:
+    - name: enable-recovery
+      value: "true"
+  transaction:
+    xaEnabled: true
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: keycloak
+  namespace: keycloak
+  labels:
+    app.kubernetes.io/part-of: connectivity-link-tutorial
+  annotations:
+    haproxy.router.openshift.io/balance: leastconn
+spec:
+  host: sso.${CLUSTER_DOMAIN}
+  to:
+    kind: Service
+    name: keycloak
+    weight: 100
+  port:
+    targetPort: https
+  tls:
+    termination: reencrypt
+    insecureEdgeTerminationPolicy: Redirect
+  wildcardPolicy: None
