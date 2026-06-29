@@ -14,7 +14,7 @@ A hands-on tutorial demonstrating how to secure, protect, and observe APIs using
 | Gateway controller | OpenShift Cluster Ingress Operator |
 | Identity provider | Red Hat build of Keycloak 26.4 (OIDC) |
 | Observability dashboards | Perses via Cluster Observability Operator (COO) 1.4+ |
-| Tracing (optional) | Red Hat build of OpenTelemetry / Tempo |
+| Tracing (optional) | Red Hat build of OpenTelemetry / Tempo + Distributed Tracing Console UI Plugin |
 | Rate limit storage | In-memory (single cluster, no Redis needed) |
 
 ## Directory Structure
@@ -70,10 +70,14 @@ connectivity-link-tutorial/
 │   ├── datasource.yaml               # PersesGlobalDatasource (Thanos)
 │   ├── dashboard.yaml                # PersesDashboard CR for RHCL metrics
 │   └── tracing/                       # Optional tracing config
+│       ├── tempo-subscription.yaml    # Red Hat build of OpenTelemetry operator
+│       ├── tempo-bucket-claim.yaml    # ODF BucketClaim for TempoStack storage
+│       ├── tempo-stack.yaml           # TempoStack CR
 │       ├── tempo-datasource.yaml      # PersesGlobalDatasource (Tempo)
+│       ├── tracing-ui-plugin.yaml     # Distributed Tracing Console UI Plugin
 │       └── kuadrant-tracing.yaml      # Kuadrant CR tracing config
-└── 10-testing/
-    └── README.md                      # End-to-end verification steps
+└── 10-cleanup/
+    └── README.md                      # Cleanup and teardown instructions
 ```
 
 ## Implementation Phases
@@ -189,19 +193,33 @@ The observability section covers metrics, tracing, access logs, and dashboards u
 5. Verify: access Observe > Dashboards (Perses) in the OpenShift web console
 
 **09c - Tracing (Optional)**
-1. Install Red Hat build of OpenTelemetry (Tempo) if distributed tracing is desired
-2. Configure data-plane tracing in the Kuadrant CR:
+1. Install Red Hat build of OpenTelemetry (Tempo Operator) via OLM
+2. Create a `BucketClaim` (via OpenShift Data Foundation) for TempoStack object storage
+   - Assumes ODF is already installed on the cluster
+   - The BucketClaim provisions an `ObjectBucketClaim` → ODF creates a backing `ObjectBucket` and a Secret with S3 credentials
+   - Alternatives: SeaweedFS or MinIO can be used as S3-compatible object storage if ODF is not available
+3. Deploy a TempoStack CR referencing the ODF bucket Secret for trace storage
+4. Configure data-plane tracing in the Kuadrant CR:
    ```yaml
    spec:
      observability:
        dataPlane:
          httpHeaderIdentifier: x-request-id
        tracing:
-         defaultEndpoint: rpc://tempo.tempo.svc.cluster.local:4317
+         defaultEndpoint: rpc://tempo-tempostack-distributor.tempo.svc.cluster.local:4317
          insecure: true
    ```
-3. Create a PersesGlobalDatasource for Tempo
-4. Verify: see traces in Perses Trace Table / Trace Gantt Chart panels
+5. Create a PersesGlobalDatasource for Tempo
+6. Enable the Distributed Tracing Console UI Plugin:
+   ```yaml
+   apiVersion: observability.openshift.io/v1alpha1
+   kind: UIPlugin
+   metadata:
+     name: distributed-tracing
+   spec:
+     type: DistributedTracing
+   ```
+7. Verify: see traces in the OpenShift console via Observe > Traces (Distributed Tracing UI Plugin) and in Perses Trace panels
 
 **09d - Access Logs**
 1. Configure Envoy access logs via Istio Telemetry CR (if using OpenShift Service Mesh)
@@ -210,13 +228,9 @@ The observability section covers metrics, tracing, access logs, and dashboards u
 
 ### Phase 5: Wrap-up (Section 10)
 
-**10 - Testing & Verification**
-1. End-to-end test script:
-   - Hit endpoint without auth → 401
-   - Hit endpoint with auth → 200
-   - Hit endpoint rapidly → 429
-   - Verify TLS certificate is valid
-2. Cleanup instructions
+**10 - Cleanup**
+1. Cleanup instructions for tearing down all tutorial resources in reverse order
+2. Delete namespaces, operator subscriptions, CRDs, and cluster-scoped resources
 
 ## Key Design Decisions
 
