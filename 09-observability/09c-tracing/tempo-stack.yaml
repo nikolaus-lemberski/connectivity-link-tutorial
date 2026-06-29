@@ -1,0 +1,91 @@
+apiVersion: tempo.grafana.com/v1alpha1
+kind: TempoStack
+metadata:
+  name: tempostack
+  namespace: tempo
+  labels:
+    app.kubernetes.io/part-of: connectivity-link-tutorial
+spec:
+  storageSize: 10Gi
+  storage:
+    secret:
+      name: tempo-bucket-secret
+      type: s3
+    tls:
+      enabled: true
+      caName: openshift-service-ca.crt
+  tenants:
+    mode: openshift
+    authentication:
+      - tenantName: dev
+        tenantId: "1610b0c3-c509-4592-a256-a1871353dbfa"
+  template:
+    gateway:
+      enabled: true
+      ingress:
+        type: route
+    queryFrontend:
+      jaegerQuery:
+        enabled: false
+  resources:
+    total:
+      limits:
+        memory: 2Gi
+        cpu: 2000m
+  retention:
+    global:
+      traces: 48h
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: tempostack-traces-reader
+rules:
+  - apiGroups:
+      - tempo.grafana.com
+    resources:
+      - dev
+    resourceNames:
+      - traces
+    verbs:
+      - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: tempostack-traces-reader
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: tempostack-traces-reader
+subjects:
+  - kind: Group
+    apiGroup: rbac.authorization.k8s.io
+    name: system:authenticated
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: tempostack-traces-writer
+rules:
+  - apiGroups:
+      - tempo.grafana.com
+    resources:
+      - dev
+    resourceNames:
+      - traces
+    verbs:
+      - create
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: tempostack-traces-writer
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: tempostack-traces-writer
+subjects:
+  - kind: ServiceAccount
+    name: otel-collector
+    namespace: tempo

@@ -1,0 +1,17 @@
+apiVersion: kuadrant.io/v1beta1
+kind: Kuadrant
+metadata:
+  name: kuadrant
+  namespace: kuadrant-system
+  labels:
+    app.kubernetes.io/part-of: connectivity-link-tutorial
+spec:
+  observability:
+    enable: true
+    dataPlane:
+      defaultLevels:
+        - debug: "true"
+      httpHeaderIdentifier: x-request-id
+    tracing:
+      defaultEndpoint: rpc://otel-collector.tempo.svc.cluster.local:4317
+      insecure: true
