@@ -38,16 +38,16 @@ Hands-on tutorial for securing, protecting, and observing APIs on OpenShift usin
 
 ```
                     ┌─────────────────────────────────────────┐
-                    │            OpenShift Cluster             │
+                    │            OpenShift Cluster            │
                     │                                         │
-  Internet ──────▶ │  Gateway (TLSPolicy)                    │
+  Internet ──────▶  │  Gateway (TLSPolicy)                    │
                     │     │                                   │
                     │     ├── HTTPRoute (AuthPolicy,          │
-                    │     │              RateLimitPolicy)      │
+                    │     │              RateLimitPolicy)     │
                     │     │                                   │
                     │     └──▶ Service ──▶ REST App Pod       │
                     │                                         │
-                    │  Prometheus ──▶ Perses Dashboards        │
+                    │  Prometheus ──▶ Perses Dashboards       │
                     └─────────────────────────────────────────┘
 ```
 
