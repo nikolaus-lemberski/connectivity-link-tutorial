@@ -1,0 +1,17 @@
+apiVersion: kuadrant.io/v1
+kind: RateLimitPolicy
+metadata:
+  name: echo-rate-limit
+  namespace: tutorial-app
+  labels:
+    app.kubernetes.io/part-of: connectivity-link-tutorial
+spec:
+  targetRef:
+    group: gateway.networking.k8s.io
+    kind: HTTPRoute
+    name: echo
+  limits:
+    global:
+      rates:
+        - limit: 5
+          window: 10s
