@@ -1,0 +1,16 @@
+apiVersion: kuadrant.io/v1
+kind: TLSPolicy
+metadata:
+  name: api-gateway-tls
+  namespace: openshift-ingress
+  labels:
+    app.kubernetes.io/part-of: connectivity-link-tutorial
+spec:
+  targetRef:
+    group: gateway.networking.k8s.io
+    kind: Gateway
+    name: api-gateway
+  issuerRef:
+    group: cert-manager.io
+    kind: ClusterIssuer
+    name: selfsigned-cluster-issuer

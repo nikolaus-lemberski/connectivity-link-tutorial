@@ -103,7 +103,7 @@ Test with a POST request:
 ```bash
 curl -s -X POST -H "Content-Type: application/json" \
     -d '{"message":"hello from tutorial"}' \
-    http://echo.${CLUSTER_DOMAIN}/api/test | python3 -m json.tool
+    http://echo.$CLUSTER_DOMAIN/api/test | python3 -m json.tool
 ```
 
 ## Manifests

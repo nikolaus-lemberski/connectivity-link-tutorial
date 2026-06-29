@@ -46,7 +46,8 @@ connectivity-link-tutorial/
 │   └── httproute.yaml                 # HTTPRoute attaching to gateway (envsubst)
 ├── 05-tls-policy/
 │   ├── README.md                      # Secure the gateway with TLS
-│   └── tls-policy.yaml               # TLSPolicy CR
+│   ├── tls-policy.yaml               # TLSPolicy CR
+│   └── route-tls.yaml                # OpenShift Route with TLS passthrough (envsubst)
 ├── 06-keycloak/
 │   ├── README.md                      # Install and configure Keycloak
 │   ├── subscription.yaml             # Keycloak operator subscription
@@ -116,11 +117,11 @@ connectivity-link-tutorial/
 ### Phase 3: Policies (Sections 05–08)
 
 **05 - TLSPolicy**
-1. Create a TLSPolicy targeting the Gateway
-   - References the ClusterIssuer from step 02
-   - Targets the HTTPS listener
-2. Verify: certificate is issued, HTTPS works with valid cert
-3. Show `oc get certificates` and test with curl
+1. Update the Gateway to add an HTTPS listener (port 443) with `tls.mode: Terminate` and `certificateRefs`
+2. Create a TLSPolicy targeting the Gateway, referencing `selfsigned-cluster-issuer`
+3. TLSPolicy creates a cert-manager Certificate → cert-manager issues cert → Secret mounted in Envoy
+4. Replace Phase 03 HTTP Route with a TLS passthrough Route (HAProxy passes TLS to Envoy)
+5. Verify: `curl -sk https://echo.${CLUSTER_DOMAIN}/` returns echo JSON, `oc get certificates` shows READY
 
 **06 - Keycloak Setup**
 1. Install Red Hat build of Keycloak operator via OLM (Subscription + OperatorGroup)
