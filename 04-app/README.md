@@ -6,12 +6,13 @@ This step deploys an HTTP echo service and routes traffic to it through the Gate
 
 | Component | Details |
 |-----------|---------|
-| Image | `docker.io/mendhak/http-https-echo:41` |
-| Description | Echoes HTTP request properties (path, headers, method, body) as JSON |
+| Image | `quay.io/nlembers/rest-echo-service:latest` |
+| Description | REST echo service — responds with method, path, status, and headers as JSON |
 | Port | 8080 (non-root, OpenShift-compatible) |
 | Namespace | `tutorial-app` |
+| Source | [`apps/rest-echo-service/`](../apps/rest-echo-service/) |
 
-The echo server is useful for verifying that traffic flows correctly through the Gateway and that policies (auth, rate limiting) are applied in later steps.
+The echo service is useful for verifying that traffic flows correctly through the Gateway and that policies (auth, rate limiting) are applied in later steps.
 
 ## Prerequisites
 
@@ -69,23 +70,25 @@ oc get httproute echo -n tutorial-app -o jsonpath='{.status.parents[0].condition
 Send a request through the Gateway:
 
 ```bash
-curl -s http://echo.${CLUSTER_DOMAIN}/ | python3 -m json.tool
+curl -s http://echo.$CLUSTER_DOMAIN/ | python3 -m json.tool
 ```
 
 You should see a JSON response containing request details:
 
 ```json
 {
+  "method": "GET",
   "path": "/",
+  "status": 200,
   "headers": {
     "host": "echo.apps.<cluster-domain>",
     "x-envoy-external-address": "...",
     "x-request-id": "...",
-    "x-envoy-decorator-operation": "echo.tutorial-app.svc.cluster.local:80/*"
+    "x-forwarded-proto": "http"
   },
-  "method": "GET",
-  "protocol": "http",
-  ...
+  "tracing_headers": {
+    "x-request-id": "..."
+  }
 }
 ```
 
@@ -93,7 +96,7 @@ Key indicators that traffic flows through the Envoy gateway:
 
 - `x-envoy-external-address` — client IP as seen by Envoy
 - `x-request-id` — unique request ID added by Envoy
-- `x-envoy-decorator-operation` — shows the upstream service Envoy routed to
+- `tracing_headers` — distributed tracing headers extracted for visibility
 
 Test with a POST request:
 

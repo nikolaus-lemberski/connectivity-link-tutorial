@@ -41,7 +41,7 @@ connectivity-link-tutorial/
 ├── 04-app/
 │   ├── README.md                      # Deploy sample echo application
 │   ├── namespace.yaml                 # tutorial-app namespace
-│   ├── deployment.yaml                # Echo server (mendhak/http-https-echo)
+│   ├── deployment.yaml                # Echo server (quay.io/nlembers/rest-echo-service)
 │   ├── service.yaml                   # ClusterIP service
 │   └── httproute.yaml                 # HTTPRoute attaching to gateway (envsubst)
 ├── 05-tls-policy/
@@ -108,7 +108,7 @@ connectivity-link-tutorial/
 
 **04 - Deploy Sample Application**
 1. Create `tutorial-app` namespace
-2. Deploy `docker.io/mendhak/http-https-echo:41` (non-root, OpenShift-compatible echo server)
+2. Deploy `quay.io/nlembers/rest-echo-service:latest` (non-root, OpenShift-compatible REST echo service)
 3. Create a ClusterIP Service (port 80 → container 8080)
 4. Create an HTTPRoute that attaches to the Gateway and routes `echo.${CLUSTER_DOMAIN}` to the Service
 5. Verify: `curl http://echo.${CLUSTER_DOMAIN}/` returns JSON with request details and Envoy headers
@@ -223,7 +223,7 @@ The observability section covers metrics, tracing, access logs, and dashboards u
 | Gateway controller | OpenShift Cluster Ingress Operator (Istio-based) | Default for RHCL on OCP 4.19+; deploys Envoy as the data plane |
 | Gateway namespace | `openshift-ingress` | Required by OCP Ingress Operator; Gateway lives alongside Istio control plane |
 | Traffic routing (bare-metal) | OpenShift Route → Gateway Service | No MetalLB needed; uses existing default router and wildcard DNS |
-| Echo service image | `docker.io/mendhak/http-https-echo:41` | Non-root, OpenShift-compatible, echoes request details as JSON |
+| Echo service image | `quay.io/nlembers/rest-echo-service:latest` | Non-root, OpenShift-compatible REST echo service; source in `apps/rest-echo-service/` |
 | TLS issuer | Self-signed ClusterIssuer | Tutorial simplicity; production note for ACME/Let's Encrypt |
 | Auth method | OIDC via Red Hat build of Keycloak 26.4 | Production-realistic; demonstrates JWT-based auth with a supported IdP |
 | Rate limit storage | In-memory | Single cluster, no Redis dependency |

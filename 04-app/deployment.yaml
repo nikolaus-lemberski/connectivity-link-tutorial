@@ -18,12 +18,12 @@ spec:
     spec:
       containers:
         - name: echo
-          image: docker.io/mendhak/http-https-echo:41
+          image: quay.io/nlembers/rest-echo-service:latest
           ports:
             - containerPort: 8080
               name: http
           env:
-            - name: HTTP_PORT
+            - name: PORT
               value: "8080"
           resources:
             requests:
