@@ -1,0 +1,34 @@
+---
+description: Guidelines for writing tutorial documentation content
+globs: "**/*.md"
+alwaysApply: false
+---
+
+# Tutorial Writing Guidelines
+
+## Structure
+
+- Each major section is a numbered directory with its own README.md
+- Start each section with a brief "What you'll learn" summary
+- End each section with a "Verify" step so users confirm success
+- Use progressive disclosure: install -> configure -> use -> observe
+
+## Tone and Style
+
+- Write for platform engineers and app developers new to Connectivity Link
+- Be concise — this is a hands-on tutorial, not reference docs
+- Use imperative mood for instructions: "Create the namespace", "Apply the manifest"
+- Link to official Red Hat docs for deeper explanations
+
+## Code Blocks
+
+- Use `shell` or `bash` for commands
+- Do NOT prefix commands with `$` — it breaks copy-paste
+- Distinguish commands from output using `#` comments (e.g., `# Should show ...`)
+- Show expected output where it aids verification
+- Use `yaml` for manifest content
+
+## Prerequisites Callouts
+
+- State prerequisites at the top of each section
+- Don't repeat cluster-level prerequisites in every section

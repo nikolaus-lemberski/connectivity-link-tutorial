@@ -1,0 +1,42 @@
+---
+description: Red Hat Connectivity Link tutorial project context and conventions
+alwaysApply: true
+---
+
+# Red Hat Connectivity Link Tutorial
+
+This project is a tutorial demonstrating Red Hat Connectivity Link 1.3 on OpenShift.
+
+## Product Context
+
+- Red Hat Connectivity Link 1.3 (based on upstream Kuadrant)
+- Uses Kubernetes Gateway API as its foundation
+- Policies attach to Gateway and HTTPRoute resources
+- Runs on OpenShift Container Platform 4.19+
+- Uses OpenShift Cluster Ingress Operator as default gateway controller
+
+## Tutorial Scope
+
+- Single-cluster deployment (no multi-cluster, no DNSPolicy)
+- RateLimitPolicy, AuthPolicy, TLSPolicy demonstrations
+- AuthPolicy uses OIDC with Red Hat build of Keycloak 26.4
+- Observability with Prometheus + Perses dashboards (via Cluster Observability Operator) + optional Tempo tracing
+- Simple REST backend services (developed later)
+
+## Key Conventions
+
+- Prefer Operators (installed via OLM) over Helm charts
+- Use plain Kubernetes/OpenShift manifest YAML files
+- Keep manifests simple and readable for tutorial purposes
+- Namespace: `kuadrant-system` for operator, `api-gateway` for gateway, `keycloak` for Keycloak, app namespaces as needed
+- Use `oc` CLI commands (OpenShift), not plain `kubectl`
+- Reference official Red Hat docs: https://docs.redhat.com/en/documentation/red_hat_connectivity_link/1.3/
+
+## API Versions
+
+- Kuadrant CRDs: `kuadrant.io/v1` (RateLimitPolicy, AuthPolicy)
+- TLSPolicy: `kuadrant.io/v1alpha2`
+- Gateway API: `gateway.networking.k8s.io/v1`
+- Kuadrant operand: `kuadrant.io/v1beta1`
+- Perses CRDs: `perses.dev/v1alpha2` (PersesDashboard, PersesDatasource, PersesGlobalDatasource)
+- Cluster Observability Operator UIPlugin: `observability.openshift.io/v1alpha1`

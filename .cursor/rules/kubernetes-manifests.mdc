@@ -1,0 +1,33 @@
+---
+description: Conventions for writing Kubernetes manifest YAML files
+globs: "**/*.yaml"
+alwaysApply: false
+---
+
+# Kubernetes Manifest Conventions
+
+## File Organization
+
+- Group related resources in the same directory (e.g., `01-install/`, `02-gateway/`)
+- Use numbered prefixes for ordering when application order matters
+- One resource per file unless tightly coupled (e.g., Service + Deployment)
+- Name files after the resource: `gateway.yaml`, `httproute.yaml`, `ratelimitpolicy.yaml`
+
+## YAML Style
+
+- Use 2-space indentation
+- Include `apiVersion`, `kind`, `metadata`, `spec` in that order
+- Always set `metadata.namespace` explicitly (don't rely on context)
+- Add minimal comments only where the "why" isn't obvious
+- No trailing whitespace
+
+## Labels
+
+- Always include `app.kubernetes.io/name` and `app.kubernetes.io/part-of: connectivity-link-tutorial`
+- Do not remove `kuadrant.io/*` labels — Connectivity Link requires them
+
+## Tutorial Clarity
+
+- Keep manifests minimal — omit optional fields that don't add tutorial value
+- When showing `oc apply` commands, show the file-based approach: `oc apply -f <file>`
+- Provide verification commands after each apply step

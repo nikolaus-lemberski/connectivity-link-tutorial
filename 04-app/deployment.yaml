@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: echo
+  namespace: tutorial-app
+  labels:
+    app: echo
+    app.kubernetes.io/part-of: connectivity-link-tutorial
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: echo
+  template:
+    metadata:
+      labels:
+        app: echo
+    spec:
+      containers:
+        - name: echo
+          image: docker.io/mendhak/http-https-echo:41
+          ports:
+            - containerPort: 8080
+              name: http
+          env:
+            - name: HTTP_PORT
+              value: "8080"
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi

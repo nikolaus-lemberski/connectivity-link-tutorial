@@ -1,0 +1,17 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: echo
+  namespace: tutorial-app
+  labels:
+    app.kubernetes.io/part-of: connectivity-link-tutorial
+spec:
+  parentRefs:
+    - name: api-gateway
+      namespace: openshift-ingress
+  hostnames:
+    - echo.${CLUSTER_DOMAIN}
+  rules:
+    - backendRefs:
+        - name: echo
+          port: 80
