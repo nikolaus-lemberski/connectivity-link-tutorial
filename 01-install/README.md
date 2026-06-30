@@ -91,7 +91,7 @@ metadata:
   namespace: kuadrant-system
 spec:
   channel: stable
-  installPlanApproval: Automatic
+  installPlanApproval: Manual
   name: rhcl-operator
   source: redhat-operators
   sourceNamespace: openshift-marketplace
@@ -99,20 +99,26 @@ spec:
 ```
 </details>
 
-Wait for the Operator to install:
+Wait for the install plan to be created:
 
 ```shell
 oc wait --for=jsonpath='{.status.installPlanRef.name}' subscription rhcl-operator -n kuadrant-system --timeout=120s
 ```
 
-Then wait for the install plan to complete:
+Approve the install plan (required because `installPlanApproval: Manual` prevents automatic upgrades):
 
 ```shell
 IP=$(oc get subscription rhcl-operator -n kuadrant-system -o jsonpath='{.status.installPlanRef.name}')
+oc patch installplan ${IP} -n kuadrant-system --type merge --patch '{"spec":{"approved":true}}'
+```
+
+Wait for the install plan to complete:
+
+```shell
 oc wait --for=condition=Installed installplan ${IP} -n kuadrant-system --timeout=180s
 ```
 
-> **Version pin:** The subscription uses `startingCSV: rhcl-operator.v1.3.4` to install Red Hat Connectivity Link **1.3**. If a newer version is already installed, delete the existing subscription and CSV in `kuadrant-system`, then re-apply `subscription.yaml`.
+> **Version pin:** The subscription uses `startingCSV: rhcl-operator.v1.3.4` with `installPlanApproval: Manual` to install and stay on Red Hat Connectivity Link **1.3**. This prevents OLM from automatically upgrading to newer versions. If a newer version becomes available, you will see a pending install plan that you can choose to approve or ignore.
 >
 > **Note:** RHCL may also install the Red Hat OpenShift Service Mesh operator as a dependency.
 
@@ -171,8 +177,8 @@ Confirm the Kuadrant resource is ready:
 
 ```bash
 oc get kuadrant -n kuadrant-system
-# NAME       STATUS   AGE
-# kuadrant   True     ...
+# NAME       MTLS AUTHORINO   MTLS LIMITADOR   AGE
+# kuadrant   false            false            ...
 ```
 
 Check that all pods in the namespace are running:

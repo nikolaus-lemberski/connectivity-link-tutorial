@@ -147,6 +147,8 @@ curl -sk -H "Authorization: Bearer $TOKEN" \
 
 You should see results with labels pointing to the gateway pod in `openshift-ingress`.
 
+> **Note:** Metrics may take 2–3 minutes to appear after enabling observability and generating traffic. The scrape interval is 30 seconds, and Thanos may take an additional cycle to make newly scraped metrics available. If the query returns empty results, wait a minute and try again.
+
 You can also check Gateway API state metrics:
 
 ```bash
