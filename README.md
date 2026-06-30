@@ -39,7 +39,7 @@ source export-cluster-env.sh
 | 07 | [Auth Policy](./07-auth-policy/) | OIDC authentication via Keycloak |
 | 08 | [Rate Limit Policy](./08-rate-limit-policy/) | Request rate limiting |
 | 09 | [Observability](./09-observability/) | Metrics, Perses dashboards, tracing |
-| 10 | [IP Restriction (Bonus)](./10-ip-restriction/) | Source IP allowlisting via AuthPolicy |
+| 10 | [IP Restriction (Bonus)](./10-ip-restriction/) | Source IP denylisting via AuthPolicy |
 | 11 | [Cleanup](./11-cleanup/) | Remove tutorial resources |
 
 ### Observability subsections
