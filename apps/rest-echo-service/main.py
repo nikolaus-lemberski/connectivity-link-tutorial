@@ -40,6 +40,13 @@ async def extract_tracing_headers(headers):
     ]
 
 
+try:
+    from opentelemetry.instrumentation.asgi import OpenTelemetryMiddleware
+    app = OpenTelemetryMiddleware(app, exclude_spans=["send", "receive"])
+except ImportError:
+    pass
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=port, proxy_headers=True, server_header=False, access_log=False)

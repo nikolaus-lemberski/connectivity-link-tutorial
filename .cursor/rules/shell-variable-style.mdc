@@ -1,0 +1,13 @@
+---
+description: Shell variable expansion style in tutorial documentation
+globs: **/*.md
+alwaysApply: true
+---
+
+# Shell Variable Expansion Style
+
+In all tutorial Markdown files:
+
+- Use **plain** `$VAR` syntax in shell commands: `$TOKEN`, `$CLUSTER_DOMAIN`, `$ROUTE`, `$KEYCLOAK_HOST`, etc.
+- **Never** use curly-brace syntax `${VAR}` in shell commands — only use `${VAR}` inside `envsubst` templates (YAML files piped through `envsubst`).
+- When a tutorial step sends `curl` requests to the echo API, include a preceding step that obtains a Keycloak token (AuthPolicy requires JWT), using the pattern from `07-auth-policy/README.md`.

@@ -15,10 +15,14 @@ spec:
     metadata:
       labels:
         app: echo
+      annotations:
+        sidecar.opentelemetry.io/inject: "true"
+        instrumentation.opentelemetry.io/inject-python: "true"
     spec:
       containers:
         - name: echo
           image: quay.io/nlembers/rest-echo-service:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 8080
               name: http

@@ -78,7 +78,9 @@ connectivity-link-tutorial/
 │       ├── otel-subscription.yaml         # Red Hat build of OpenTelemetry Operator
 │       ├── tempo-bucket-claim.yaml        # ODF ObjectBucketClaim for TempoStack storage
 │       ├── tempo-stack.yaml               # Multi-tenant TempoStack + RBAC
-│       ├── otel-collector.yaml            # OpenTelemetryCollector CR (trace forwarding)
+│       ├── otel-collector.yaml            # OpenTelemetryCollector CR (central, trace forwarding)
+│       ├── otel-sidecar.yaml              # OpenTelemetryCollector CR (sidecar for echo service)
+│       ├── otel-instrumentation.yaml      # Instrumentation CR (Python auto-instrumentation)
 │       ├── envoy-tracing-filter.yaml      # EnvoyFilter for Envoy proxy tracing
 │       ├── kuadrant-tracing.yaml          # Kuadrant CR with tracing config
 │       └── tracing-ui-plugin.yaml        # Distributed Tracing console plugin
@@ -216,7 +218,12 @@ The observability section covers metrics, tracing, access logs, and dashboards u
          defaultEndpoint: rpc://otel-collector.tempo.svc.cluster.local:4317
          insecure: true
    ```
-7. Enable the Distributed Tracing Console UI Plugin:
+7. Instrument the echo service with an OTel sidecar collector and Python auto-instrumentation:
+   - Deploy a sidecar `OpenTelemetryCollector` CR (`mode: sidecar`) in `tutorial-app` namespace
+   - Deploy an `Instrumentation` CR for Python auto-instrumentation
+   - The echo deployment has pod template annotations (`sidecar.opentelemetry.io/inject` and `instrumentation.opentelemetry.io/inject-python`) that trigger injection
+   - The sidecar forwards traces to the central OTel Collector; Envoy propagates `traceparent` to the echo service for correlated traces
+8. Enable the Distributed Tracing Console UI Plugin:
    ```yaml
    apiVersion: observability.openshift.io/v1alpha1
    kind: UIPlugin
@@ -225,7 +232,7 @@ The observability section covers metrics, tracing, access logs, and dashboards u
    spec:
      type: DistributedTracing
    ```
-8. Verify: see traces from envoy-gateway, authorino, limitador, and wasm-shim in the OpenShift console via Observe → Traces
+9. Verify: see traces from envoy-gateway, echo, authorino, limitador, and wasm-shim in the OpenShift console via Observe → Traces; confirm envoy-gateway and echo traces are correlated
 
 **09d - Access Logs**
 1. Configure Envoy access logs via Istio Telemetry CR (if using OpenShift Service Mesh)

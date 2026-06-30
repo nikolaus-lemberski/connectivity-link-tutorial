@@ -4,9 +4,22 @@
 
 **Prerequisites:** Section 09b completed (COO installed, Perses dashboards working). OpenShift Data Foundation (ODF) installed with NooBaa available for S3-compatible object storage.
 
+## How to use this section
+
+This section has two tracks so you can get a working demo quickly, then add deeper policy tracing.
+
+- **Track A (Minimal, recommended first):** Get end-to-end correlated traces from `envoy-gateway` to `echo`.
+- **Track B (Advanced):** Add Kuadrant component traces (`wasm-shim`, `authorino`, `limitador`) and cross-component correlation via `x-request-id`.
+
+**Minimal success criterion (Track A):** In **Observe -> Traces**, you can find a trace with:
+
+- root span service: `envoy-gateway`
+- child span service: `echo` (`GET /`)
+- HTTP responses from `https://echo.$CLUSTER_DOMAIN/` are `200`
+
 ## Overview
 
-Distributed tracing lets you follow a single request as it flows through the gateway and policy enforcement components — Envoy, the wasm-shim module, Authorino (authentication), and Limitador (rate limiting). This is invaluable for debugging request-level issues and understanding policy enforcement timing.
+Distributed tracing lets you follow a single request as it flows through the gateway, policy enforcement components, and into your application. By instrumenting the echo service with an OpenTelemetry sidecar collector and auto-instrumentation, we get correlated end-to-end traces from Envoy through the application — not just isolated spans from each component.
 
 ```
                           ┌──────────────────────────────────────┐
@@ -15,19 +28,21 @@ Distributed tracing lets you follow a single request as it flows through the gat
   ┌─────────┐  OTLP/gRPC  │  ┌──────────┐  OTLP/HTTP  ┌───────┐  │
   │ Envoy   │────────────►│  │  OTel    │────────────►│Tempo  │  │
   │ gateway │             │  │Collector │  (bearer    │Gateway│  │
-  └─────────┘             │  │          │   token +   └───┬───┘  │
-  ┌─────────┐             │  │          │   tenant)       │      │
-  │Authorino│────────────►│  └──────────┘           ┌─────▼───┐  │
-  └─────────┘             │                         │Distrib- │  │
-  ┌─────────┐             │                         │  utor   │  │
-  │Limitador│────────────►│                         └────┬────┘  │
-  └─────────┘             │                         ┌────▼────┐  │
-                          │                         │Ingester │  │
-                          │                         └────┬────┘  │
-                          │                         ┌────▼────┐  │
-                          │                         │ODF/S3   │  │
-                          │                         └─────────┘  │
-                          └──────────────────────────────────────┘
+  └────┬────┘             │  │ (central)│   token +   └───┬───┘  │
+       │ traceparent      │  │          │   tenant)       │      │
+  ┌────▼────────────────┐ │  └─────▲────┘           ┌─────▼───┐  │
+  │ Echo Pod            │ │        │                │Distrib- │  │
+  │ ┌───────┐ ┌───────┐ │ │        │                │  utor   │  │
+  │ │ echo  │►│ OTel  │ │─┼────────┘                └────┬────┘  │
+  │ │  app  │ │sidecar│ │ │  OTLP/gRPC              ┌────▼────┐  │
+  │ └───────┘ └───────┘ │ │                         │Ingester │  │
+  └─────────────────────┘ │                         └────┬────┘  │
+  ┌─────────┐             │                         ┌────▼────┐  │
+  │Authorino│────────────►│                         │ODF/S3   │  │
+  └─────────┘             │                         └─────────┘  │
+  ┌─────────┐             │                                      │
+  │Limitador│────────────►│                                      │
+  └─────────┘             └──────────────────────────────────────┘
                                         │
                                         ▼
                           ┌──────────────────────────────────────┐
@@ -37,15 +52,18 @@ Distributed tracing lets you follow a single request as it flows through the gat
                           └──────────────────────────────────────┘
 ```
 
-**Architecture highlights:**
+**Architecture highlights (short):**
 
 - The TempoStack is deployed with **multi-tenancy** and a **gateway** for access control.
-- An **OpenTelemetry Collector** acts as an intermediary — it authenticates with the Tempo gateway using a bearer token and forwards traces to the correct tenant.
+- A **central OpenTelemetry Collector** acts as an intermediary — it authenticates with the Tempo gateway using a bearer token and forwards traces to the correct tenant.
 - **Envoy proxy tracing** is configured via an `EnvoyFilter` that patches the Envoy HTTP Connection Manager directly. This is necessary because the `openshift-gateway` Istio CR is managed by the Cluster Ingress Operator and does not allow adding custom `extensionProviders`.
-- **Kuadrant component tracing** (Authorino, Limitador, wasm-shim) is configured via the `Kuadrant` CR `spec.observability.tracing`.
+- **Kuadrant component tracing** (Authorino, Limitador, wasm-shim) is configured via the `Kuadrant` CR `spec.observability.tracing` (advanced track).
+- **Echo service tracing** uses an OTel Collector **sidecar** injected into the echo pod, combined with Python **auto-instrumentation** via the `Instrumentation` CR. The sidecar forwards traces to the central collector. Because Envoy propagates the `traceparent` header to the echo service, the echo spans are correlated with the Envoy spans in a single trace.
 - Traces are visualized through the **Distributed Tracing console plugin** (Observe → Traces in the OpenShift web console).
 
-## Step 1: Install the Tempo Operator
+
+
+## Step 1 (Required - Track A): Install the Tempo Operator
 
 Install the Tempo Operator via OLM. This provides the `TempoStack` CRD for deploying a complete tracing backend.
 
@@ -60,7 +78,9 @@ oc wait --for=jsonpath='{.status.state}'=AtLatestKnown \
   subscription/tempo-product -n tempo --timeout=180s
 ```
 
-## Step 2: Install the Red Hat build of OpenTelemetry Operator
+
+
+## Step 2 (Required - Track A): Install the Red Hat build of OpenTelemetry Operator
 
 The OpenTelemetry Operator provides the `OpenTelemetryCollector` CRD. The collector is needed as an intermediary between Envoy/Kuadrant components and the multi-tenant Tempo gateway (it handles bearer token authentication and tenant routing).
 
@@ -75,7 +95,9 @@ oc wait --for=jsonpath='{.status.state}'=AtLatestKnown \
   subscription/opentelemetry-product -n openshift-opentelemetry-operator --timeout=180s
 ```
 
-## Step 3: Provision Object Storage for TempoStack
+
+
+## Step 3 (Required - Track A): Provision Object Storage for TempoStack
 
 TempoStack requires S3-compatible object storage for trace data. Since ODF with NooBaa is available on this cluster, create an `ObjectBucketClaim` to provision a bucket automatically.
 
@@ -90,7 +112,9 @@ oc wait --for=jsonpath='{.status.phase}'=Bound \
   objectbucketclaim/tempo-bucket -n tempo --timeout=120s
 ```
 
-## Step 4: Create the TempoStack Storage Secret
+
+
+## Step 4 (Required - Track A): Create the TempoStack Storage Secret
 
 Extract values from the OBC-provisioned ConfigMap and Secret, then create the TempoStack storage secret:
 
@@ -102,13 +126,15 @@ AWS_ACCESS_KEY_ID=$(oc get secret tempo-bucket -n tempo -o jsonpath='{.data.AWS_
 AWS_SECRET_ACCESS_KEY=$(oc get secret tempo-bucket -n tempo -o jsonpath='{.data.AWS_SECRET_ACCESS_KEY}' | base64 -d)
 
 oc create secret generic tempo-bucket-secret -n tempo \
-  --from-literal=endpoint="https://${BUCKET_HOST}:${BUCKET_PORT}" \
+  --from-literal=endpoint="https://$BUCKET_HOST:$BUCKET_PORT" \
   --from-literal=bucket="$BUCKET_NAME" \
   --from-literal=access_key_id="$AWS_ACCESS_KEY_ID" \
   --from-literal=access_key_secret="$AWS_SECRET_ACCESS_KEY"
 ```
 
-## Step 5: Deploy TempoStack
+
+
+## Step 5 (Required - Track A): Deploy TempoStack
 
 Deploy a multi-tenant TempoStack with the gateway enabled and RBAC for trace read/write access.
 
@@ -133,7 +159,9 @@ oc wait --for=condition=Ready tempostack/tempostack -n tempo --timeout=300s
 oc get pods -n tempo -l app.kubernetes.io/instance=tempostack
 ```
 
-## Step 6: Deploy the OpenTelemetry Collector
+
+
+## Step 6 (Required - Track A): Deploy the OpenTelemetry Collector
 
 Deploy an OpenTelemetry Collector that receives OTLP traces and forwards them to the Tempo gateway with bearer token authentication and the correct tenant header.
 
@@ -157,7 +185,9 @@ oc logs -n tempo -l app.kubernetes.io/name=otel-collector --tail=5
 # Should see: "Everything is ready. Begin running and processing data."
 ```
 
-## Step 7: Configure Envoy Proxy Tracing
+
+
+## Step 7 (Required - Track A): Configure Envoy Proxy Tracing
 
 The `openshift-gateway` Istio CR is managed by the Cluster Ingress Operator, which prevents adding custom `extensionProviders` to the mesh config. To enable Envoy proxy tracing, we use an `EnvoyFilter` that directly patches the Envoy HTTP Connection Manager with an OpenTelemetry tracing configuration.
 
@@ -191,9 +221,13 @@ for config in data.get('configs', []):
 # Should output: Tracing configured: envoy.tracers.opentelemetry
 ```
 
-## Step 8: Configure Data-Plane Tracing in the Kuadrant CR
+
+
+## Step 8 (Optional - Track B): Configure Data-Plane Tracing in the Kuadrant CR
 
 Update the Kuadrant CR to enable tracing for the wasm-shim, Authorino, and Limitador. This sends traces from the Connectivity Link policy engine to the OTel Collector.
+
+> Skip this step if you only want the minimal gateway-to-app tracing demo.
 
 ```bash
 oc apply -f 09-observability/09c-tracing/kuadrant-tracing.yaml
@@ -210,7 +244,83 @@ Wait for the Kuadrant CR to reconcile:
 oc wait kuadrant/kuadrant --for="condition=Ready=true" -n kuadrant-system --timeout=120s
 ```
 
-## Step 9: Enable the Distributed Tracing Console Plugin
+
+
+## Step 9 (Required - Track A): Instrument the Echo Service
+
+The echo service is a Python ASGI application. We combine three mechanisms to get correlated end-to-end traces:
+
+1. **Sidecar collector** — an OTel Collector injected into the echo pod that receives traces on `localhost` and forwards them to the central collector.
+2. **Auto-instrumentation** — the OTel Operator injects the OpenTelemetry Python SDK into the echo container via an init container.
+3. **ASGI middleware** — a small code addition in `main.py` wraps the raw ASGI app with `OpenTelemetryMiddleware`, which creates spans for each HTTP request and reads the `traceparent` header propagated by Envoy.
+
+
+
+### 9a: Prepare the echo service code
+
+The auto-instrumentation injects the OTel Python SDK at runtime, but it cannot automatically wrap a raw ASGI function. The echo service's `main.py` includes a `try/except` block that applies the middleware when the SDK is available:
+
+```python
+try:
+    from opentelemetry.instrumentation.asgi import OpenTelemetryMiddleware
+    app = OpenTelemetryMiddleware(app, exclude_spans=["send", "receive"])
+except ImportError:
+    pass
+```
+
+The `exclude_spans=["send", "receive"]` option suppresses the low-level ASGI `http send`/`http receive` sub-spans that the middleware creates by default — without it, each request would generate 3 echo spans instead of 1 clean `GET /` span. When running without auto-instrumentation, the import fails gracefully and the app runs unmodified.
+
+### 9b: Deploy the sidecar collector and instrumentation CRs
+
+```bash
+oc apply -f 09-observability/09c-tracing/otel-sidecar.yaml
+oc apply -f 09-observability/09c-tracing/otel-instrumentation.yaml
+```
+
+Key details:
+
+- The sidecar listens on both **gRPC (4317)** and **HTTP (4318)**. The Python auto-instrumentation uses the `http/protobuf` protocol by default, so it sends to the HTTP receiver on port 4318.
+- The `Instrumentation` CR sets `exporter.endpoint: http://localhost:4318` and `propagators: [tracecontext, baggage]` — the `tracecontext` propagator reads `traceparent` headers from incoming requests, linking echo spans to Envoy parent spans.
+- The `Instrumentation` CR disables **metrics and logs** export (`OTEL_METRICS_EXPORTER=none`, `OTEL_LOGS_EXPORTER=none`) because the sidecar collector only has a traces pipeline.
+
+
+
+### 9c: Apply the echo deployment
+
+The echo deployment in `04-app/deployment.yaml` includes the required annotations on the pod template:
+
+- `sidecar.opentelemetry.io/inject: "true"` — triggers sidecar collector injection
+- `instrumentation.opentelemetry.io/inject-python: "true"` — triggers Python auto-instrumentation
+
+Apply (or re-apply) the deployment:
+
+```bash
+oc apply -f 04-app/deployment.yaml
+oc rollout status deployment/echo -n tutorial-app --timeout=120s
+```
+
+
+
+### 9d: Verify the echo pod
+
+The echo pod should now have the sidecar collector as a native sidecar (init container with `restartPolicy: Always`) and the auto-instrumentation init container:
+
+```bash
+oc get pod -n tutorial-app -l app=echo
+# Should show 2/2 Running
+
+oc get pod -n tutorial-app -l app=echo \
+  -o jsonpath='{range .items[0].spec.initContainers[*]}{.name}{"\n"}{end}'
+# Should show:
+#   otc-container
+#   opentelemetry-auto-instrumentation-python
+```
+
+> **Why a sidecar?** The sidecar collector runs on `localhost` inside the pod, so the auto-instrumented app can export traces without network overhead. The sidecar then forwards to the central collector which handles authentication and tenant routing to the TempoStack gateway.
+
+
+
+## Step 10 (Required - Track A): Enable the Distributed Tracing Console Plugin
 
 The Distributed Tracing UI Plugin adds an **Observe → Traces** menu item to the OpenShift web console, providing full trace search and waterfall visualization powered by the TempoStack. Since we deployed a multi-tenant TempoStack with a gateway, the plugin auto-discovers it.
 
@@ -228,22 +338,49 @@ oc get consoleplugin distributed-tracing-console-plugin
 
 > **Note:** You may need to refresh the OpenShift web console (or log out and back in) for the new **Observe → Traces** menu item to appear.
 
-## Step 10: Verify Tracing End-to-End
 
-### 10a: Generate Traffic
 
-Send some requests through the gateway to generate traces:
+## Step 11: Verify Tracing End-to-End
+
+### 11.0: Quick verification path (Track A)
+
+If you only need a quick demonstration, do these in order:
+
+1. **11a** Generate traffic
+2. **11b** Confirm Envoy is exporting traces
+3. **11c** Open **Observe -> Traces** and confirm one correlated `envoy-gateway -> echo` trace
+
+Then stop here. Use **11d** only when you need deeper cross-component correlation.
+
+
+
+### 11a: Generate Traffic
+
+Obtain a token from Keycloak (AuthPolicy requires JWT authentication) and send requests through the gateway:
 
 ```bash
+export CLUSTER_DOMAIN=$(oc get ingresses.config.openshift.io cluster -o jsonpath='{.spec.domain}')
+export KEYCLOAK_HOST=$(oc get route keycloak -n keycloak -o jsonpath='{.spec.host}')
+
+TOKEN=$(curl -sk -X POST "https://$KEYCLOAK_HOST/realms/connectivity-link-tutorial/protocol/openid-connect/token" \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "grant_type=password&client_id=tutorial-app&client_secret=tutorial-app-secret&username=testuser&password=testuser" \
+  | python3 -c "import sys,json; print(json.load(sys.stdin)['access_token'])")
+
 for i in $(seq 1 5); do
   curl -sk -o /dev/null -w "Request $i: HTTP %{http_code}\n" \
-    "https://echo.${CLUSTER_DOMAIN}/" \
+    "https://echo.$CLUSTER_DOMAIN/" \
+    -H "Authorization: Bearer $TOKEN" \
     -H "x-request-id: smoke-test-$i"
   sleep 1
 done
 ```
 
-### 10b: Check Envoy Trace Delivery
+> **Note:** Tokens expire after 5 minutes. Re-run the token request if you get HTTP 401 responses.
+
+
+
+### 11b: Check Envoy Trace Delivery
 
 Verify Envoy is sending traces to the OTel Collector by checking the Envoy cluster stats:
 
@@ -254,27 +391,33 @@ oc exec -n openshift-ingress $GWPOD -- pilot-agent request GET clusters 2>/dev/n
 # rq_total should be > 0
 ```
 
-### 10c: View Traces in the OpenShift Console
+
+
+### 11c: View Traces in the OpenShift Console
 
 1. Open the OpenShift web console
 2. Navigate to **Observe → Traces**
 3. Select the **dev** tenant and search for traces by service name or time range
 4. You should see traces from these service names:
-   - **envoy-gateway** — Envoy proxy processing
-   - **authorino** — JWT authentication and authorization
-   - **limitador** — rate limit checks
-   - **wasm-shim** — the Connectivity Link wasm-shim policy engine
+  - **envoy-gateway** — Envoy proxy processing
+  - **echo** — the echo application (auto-instrumented Python)
+  - **authorino** — JWT authentication and authorization
+  - **limitador** — rate limit checks
+  - **wasm-shim** — the Connectivity Link wasm-shim policy engine
 
-> **What to expect:** Most traces from `envoy-gateway`, `authorino`, and `limitador` will contain **a single span** each. This is normal — each component reports its operations independently with its own trace ID. The **wasm-shim** traces are the most informative: they contain **multiple spans** (typically 10+) showing the full Kuadrant policy evaluation pipeline — auth checks, rate-limit checks, and each step of the request processing. Focus on wasm-shim traces for the richest debugging insight.
+> **What to expect:** The `envoy-gateway` and `echo` traces are **correlated** — because Envoy propagates the `traceparent` header to the echo service, the echo span appears as a child of the Envoy span in a single trace. A typical correlated trace has **2 spans**: 1 envoy-gateway root span → 1 echo `GET /` child span. In the Distributed Tracing UI, look for traces with `rootServiceName=envoy-gateway` — when you expand them, you'll see the echo child span in the waterfall view. (The `exclude_spans=["send", "receive"]` option in `OpenTelemetryMiddleware` suppresses the noisy ASGI `http send`/`http receive` sub-spans.)
 >
-> Fully correlated end-to-end traces (where a single trace links Envoy → wasm-shim → Authorino → Limitador) would require trace context propagation between all components, which is not configured out of the box.
+> Traces from `authorino` and `limitador` still contain **a single span** each, as these components report independently. The **wasm-shim** traces remain the most informative with **10+ spans** showing the full Kuadrant policy evaluation pipeline.
 
-### 10d: Correlate with Request IDs
+
+
+### 11d (Optional - Track B): Correlate with Request IDs
 
 The `httpHeaderIdentifier: x-request-id` in the Kuadrant CR ensures the `x-request-id` header appears in trace spans:
 
 ```bash
-curl -sk -v "https://echo.${CLUSTER_DOMAIN}/" 2>&1 | grep x-request-id
+curl -sk -v "https://echo.$CLUSTER_DOMAIN/" \
+  -H "Authorization: Bearer $TOKEN" 2>&1 | grep x-request-id
 # < x-request-id: a1b2c3d4-e5f6-7890-abcd-ef1234567890
 ```
 
@@ -282,16 +425,20 @@ Use that request ID to search for the correlated trace.
 
 ## Understanding the Trace Data
 
-Each component generates its own traces independently. Because trace context is not propagated between components, you will see **separate traces per component** rather than one unified trace per request.
+With the echo service instrumented via auto-instrumentation and sidecar, you now get **correlated traces** between Envoy and the echo application. Other components still report independently.
 
-| Service name | Typical spans per trace | What it shows |
-|---|---|---|
-| `envoy-gateway` | 1 | The HTTP request flowing through the Envoy proxy (timing, status code, headers) |
-| `authorino` | 1 | A single authentication/authorization check |
-| `limitador` | 1 | A single rate-limit evaluation |
-| `wasm-shim` | 10+ | The full Kuadrant policy evaluation pipeline — this is the most valuable trace |
 
-**The wasm-shim trace** is where you get the richest debugging insight. The wasm-shim runs as a Wasm filter inside Envoy and orchestrates the entire policy evaluation. Its trace spans show:
+| Service name             | Typical spans per trace | What it shows                                                                                                                                                         |
+| ------------------------ | ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `envoy-gateway` + `echo` | 2 (correlated)          | End-to-end: 1 Envoy root span → 1 echo `GET /` child span. Envoy propagates `traceparent` to the echo service, so both spans appear in a single trace. |
+| `authorino`              | 1                       | A single authentication/authorization check (Track B)                                                                                                                  |
+| `limitador`              | 1                       | A single rate-limit evaluation (Track B)                                                                                                                               |
+| `wasm-shim`              | 10+                     | The full Kuadrant policy evaluation pipeline (Track B)                                                                                                                 |
+
+
+**Correlated Envoy + echo traces** show the full request lifecycle: how long the request spent in the Envoy proxy vs. how long the application took to process it. This is the key benefit of instrumenting the echo service.
+
+**The wasm-shim trace** is where you get the richest policy debugging insight. The wasm-shim runs as a Wasm filter inside Envoy and orchestrates the entire policy evaluation. Its trace spans show:
 
 - **Duration** of each policy evaluation step
 - **Calls to Authorino** for authentication/authorization
@@ -299,7 +446,18 @@ Each component generates its own traces independently. Because trace context is 
 - **Success or failure** of each policy check
 - **Request metadata** (path, method, response code)
 
-**Correlating across components:** While traces are separate, you can correlate them using the `x-request-id` header. When you send a request, Envoy assigns an `x-request-id` that is passed to all Kuadrant components. Search for this value in the trace attributes to find all related spans across services.
+**Correlating across components (Track B):** While `authorino` and `limitador` traces are separate, you can correlate them using the `x-request-id` header. When you send a request, Envoy assigns an `x-request-id` that is passed to all Kuadrant components. Search for this value in the trace attributes to find all related spans across services.
+
+## Troubleshooting (Quick Matrix)
+
+| Symptom | Likely cause | What to check |
+| ------- | ------------ | ------------- |
+| No **Observe -> Traces** menu item | UI plugin not available yet / stale browser session | `oc get uiplugin distributed-tracing`; refresh console or log out/in |
+| `curl` to echo returns `401` | Missing or expired token | Re-run token request in 11a; token lifetime is short |
+| Traces exist but no `echo` spans | Echo instrumentation not active | Echo pod annotations in `04-app/deployment.yaml`; `otc-container` and `opentelemetry-auto-instrumentation-python` init/sidecar presence |
+| `envoy-gateway` trace exists but not correlated with `echo` | Missing/incorrect trace context propagation or outdated echo image | Confirm echo uses middleware with `OpenTelemetryMiddleware`; re-rollout deployment if needed |
+| No new traces from gateway | Envoy not exporting to collector | `pilot-agent request GET clusters` check in 11b (`rq_total > 0`) |
+| No Track B service traces (`wasm-shim`/`authorino`/`limitador`) | Kuadrant tracing not configured | Apply/check `09-observability/09c-tracing/kuadrant-tracing.yaml` and Kuadrant `Ready` condition |
 
 ## Verify
 
@@ -310,9 +468,22 @@ Each component generates its own traces independently. Because trace context is 
 - [ ] `oc get pods -n tempo -l app.kubernetes.io/name=otel-collector` shows Running
 - [ ] `oc get envoyfilter otel-tracing -n openshift-ingress` exists
 - [ ] `oc get kuadrant -n kuadrant-system` shows `Ready` with tracing configured
+- [ ] `oc get otelinst echo-instrumentation -n tutorial-app` exists
+- [ ] Echo pod has a sidecar container: `oc get pod -n tutorial-app -l app=echo -o jsonpath='{.items[0].spec.containers[*].name}'` includes `otc-container`
 - [ ] `oc get uiplugin distributed-tracing` shows `Available`
 - [ ] Envoy cluster stats show `rq_total > 0` for the OTel Collector cluster
-- [ ] Traces from `envoy-gateway`, `authorino`, `limitador`, and `wasm-shim` are visible in **Observe → Traces**
+- [ ] Traces from `envoy-gateway`, `echo`, `authorino`, `limitador`, and `wasm-shim` are visible in **Observe → Traces**
+- [ ] `envoy-gateway` and `echo` traces are correlated (appear in the same trace with parent-child relationship)
+
+---
+
+## Appendix: Why these components exist
+
+- **Central OTel Collector:** Needed because TempoStack is multi-tenant behind a gateway; the collector handles auth and tenant routing.
+- **EnvoyFilter tracing patch:** Required because the managed gateway setup does not allow custom mesh `extensionProviders`.
+- **Echo sidecar collector + Python auto-instrumentation:** Gives app spans without building collector/auth logic into the app itself.
+- **Distributed Tracing UI plugin:** Native OpenShift trace search and waterfall view without relying on Jaeger UI.
+- **Kuadrant tracing (Track B):** Adds policy-engine visibility for debugging real API protection flows, beyond simple gateway-to-app latency.
 
 ---
 
