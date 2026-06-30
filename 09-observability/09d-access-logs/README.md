@@ -227,4 +227,4 @@ This is the standard observability correlation pattern: **logs** give you the in
 ---
 
 Previous: [09c — Tracing (Optional)](../09c-tracing/README.md)
-Next: [10 — Cleanup](../../10-cleanup/README.md)
+Next: [10 — IP Restriction (Bonus)](../../10-ip-restriction/README.md)

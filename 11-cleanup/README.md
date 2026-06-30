@@ -1,4 +1,4 @@
-# 10 — Cleanup
+# 11 — Cleanup
 
 ## What you'll do
 
@@ -14,7 +14,7 @@ Remove all resources created by this tutorial from your OpenShift cluster.
 Run the cleanup script:
 
 ```shell
-./10-cleanup/cleanup.sh
+./11-cleanup/cleanup.sh
 ```
 
 The script will:
