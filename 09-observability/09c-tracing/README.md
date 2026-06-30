@@ -488,4 +488,4 @@ With the echo service instrumented via auto-instrumentation and sidecar, you now
 ---
 
 Previous: [09b — Cluster Observability Operator & Perses Dashboards](../09b-dashboards/README.md)
-Next: [10 — Cleanup](../../10-cleanup/README.md)
+Next: [09d — Access Logs](../09d-access-logs/README.md)

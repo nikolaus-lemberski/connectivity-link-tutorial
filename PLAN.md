@@ -84,6 +84,9 @@ connectivity-link-tutorial/
 │       ├── envoy-tracing-filter.yaml      # EnvoyFilter for Envoy proxy tracing
 │       ├── kuadrant-tracing.yaml          # Kuadrant CR with tracing config
 │       └── tracing-ui-plugin.yaml        # Distributed Tracing console plugin
+│   └── 09d-access-logs/                      # Access logs & correlation
+│       ├── README.md                      # Access logs walkthrough
+│       └── access-log-telemetry.yaml      # Istio Telemetry CR for access logging
 └── 10-cleanup/
     └── README.md                      # Cleanup and teardown instructions
 ```
@@ -235,9 +238,10 @@ The observability section covers metrics, tracing, access logs, and dashboards u
 9. Verify: see traces from envoy-gateway, echo, authorino, limitador, and wasm-shim in the OpenShift console via Observe → Traces; confirm envoy-gateway and echo traces are correlated
 
 **09d - Access Logs**
-1. Configure Envoy access logs via Istio Telemetry CR (if using OpenShift Service Mesh)
-2. Enable request correlation with `x-request-id`
-3. Demonstrate correlating logs → traces → metrics for a rate-limited or auth-denied request
+1. Explain the default Envoy access log format (already active via Istio) and how to read it
+2. Apply an Istio Telemetry CR to make access logging explicit and controllable (CEL filter examples for production)
+3. Generate traffic for three scenarios: 200 (success), 401 (auth-denied), 429 (rate-limited)
+4. Demonstrate full three-pillar correlation using `x-request-id`: access logs → distributed traces → metrics
 
 ### Phase 5: Wrap-up (Section 10)
 

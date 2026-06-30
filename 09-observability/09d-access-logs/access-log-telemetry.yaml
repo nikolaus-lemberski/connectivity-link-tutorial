@@ -1,0 +1,14 @@
+apiVersion: telemetry.istio.io/v1
+kind: Telemetry
+metadata:
+  name: api-gateway-access-logs
+  namespace: openshift-ingress
+  labels:
+    app.kubernetes.io/part-of: connectivity-link-tutorial
+spec:
+  selector:
+    matchLabels:
+      gateway.networking.k8s.io/gateway-name: api-gateway
+  accessLogging:
+    - providers:
+        - name: envoy
