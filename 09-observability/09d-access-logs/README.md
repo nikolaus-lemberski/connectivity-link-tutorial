@@ -90,14 +90,9 @@ oc get telemetry -n openshift-ingress
 
 Send three types of requests and **capture the `x-request-id` from each response**. Envoy generates a unique `x-request-id` for every external request — even if you send one in the request, Envoy replaces it with its own UUID. The ID returned in the response header is the one that appears in logs and traces.
 
-```bash
-export CLUSTER_DOMAIN=$(oc get ingresses.config.openshift.io cluster -o jsonpath='{.spec.domain}')
-export KEYCLOAK_HOST=$(oc get route keycloak -n keycloak -o jsonpath='{.spec.host}')
-
-TOKEN=$(curl -sk -X POST "https://$KEYCLOAK_HOST/realms/connectivity-link-tutorial/protocol/openid-connect/token" \
-  -H "Content-Type: application/x-www-form-urlencoded" \
-  -d "grant_type=password&client_id=tutorial-app&client_secret=tutorial-app-secret&username=testuser&password=testuser" \
-  | python3 -c "import sys,json; print(json.load(sys.stdin)['access_token'])")
+```shell
+source export-cluster-env.sh
+export TOKEN=$(get_token)
 ```
 
 **Scenario 1 — Successful request (expect 200):**

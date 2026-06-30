@@ -9,6 +9,8 @@ Before starting this tutorial, ensure you have the following in place.
 | OpenShift Container Platform | 4.19 or later |
 | Cluster access | `cluster-admin` privileges |
 | `oc` CLI | Installed and logged in to the cluster |
+| `envsubst` | GNU gettext (`brew install gettext` on macOS) |
+| `python3` | Used in verification steps |
 | Red Hat subscription | Includes Red Hat Connectivity Link entitlement |
 | cert-manager Operator | cert-manager Operator for Red Hat OpenShift 1.18+ installed |
 
@@ -16,9 +18,9 @@ Before starting this tutorial, ensure you have the following in place.
 
 Confirm you are logged in with cluster-admin access:
 
-```bash
+```shell
 oc whoami
-admin
+# admin
 
 oc version
 # Should show OCP 4.19+
@@ -26,14 +28,14 @@ oc version
 
 Confirm cert-manager Operator is installed:
 
-```bash
+```shell
 oc get csv -A | grep cert-manager
 # Should show cert-manager-operator with status "Succeeded"
 ```
 
 Confirm the `rhcl-operator` package is available in the catalog:
 
-```bash
+```shell
 oc get packagemanifest rhcl-operator -n openshift-marketplace
 # NAME            CATALOG           AGE
 # rhcl-operator   Red Hat Operators ...
@@ -43,17 +45,26 @@ oc get packagemanifest rhcl-operator -n openshift-marketplace
 
 Several steps in this tutorial reference the cluster's apps domain. Retrieve it now for later use:
 
-```bash
+```shell
 oc get ingresses.config/cluster -o jsonpath='{.spec.domain}'
 # Example: apps.cluster-xxxxx.example.com
 ```
 
-Store it as an environment variable for convenience:
+Store common variables for convenience:
 
-```bash
-export CLUSTER_DOMAIN=$(oc get ingresses.config/cluster -o jsonpath='{.spec.domain}')
-echo $CLUSTER_DOMAIN
+```shell
+source export-cluster-env.sh
 ```
+
+This sets `CLUSTER_DOMAIN` and `KEYCLOAK_HOST` for all subsequent sections.
+
+## Re-running the tutorial
+
+If you ran the tutorial before on the same cluster:
+
+- Use [10 — Cleanup](../10-cleanup/) before starting again, or delete leftover PVCs (especially Keycloak PostgreSQL) manually.
+- If Keycloak PostgreSQL already exists in `tutorial-keycloak`, reuse the same `KEYCLOAK_DB_PASSWORD` or delete the PVC before re-applying `postgres.yaml`.
+- The tutorial deploys its own Keycloak in the `tutorial-keycloak` namespace and does **not** modify the `keycloak` namespace or `sso.${CLUSTER_DOMAIN}` hostname used for OpenShift console login.
 
 ## Next steps
 

@@ -4,6 +4,12 @@
 
 **Prerequisites:** Section 09b completed (COO installed, Perses dashboards working). OpenShift Data Foundation (ODF) installed with NooBaa available for S3-compatible object storage.
 
+Verify ODF storage class is available:
+
+```shell
+oc get storageclass openshift-storage.noobaa.io
+```
+
 ## How to use this section
 
 This section has two tracks so you can get a working demo quickly, then add deeper policy tracing.
@@ -292,11 +298,12 @@ The echo deployment in `04-app/deployment.yaml` includes the required annotation
 - `sidecar.opentelemetry.io/inject: "true"` — triggers sidecar collector injection
 - `instrumentation.opentelemetry.io/inject-python: "true"` — triggers Python auto-instrumentation
 
-Apply (or re-apply) the deployment:
+Apply (or re-apply) the deployment, then restart the pod so the OTel operator injects the sidecar:
 
-```bash
+```shell
 oc apply -f 04-app/deployment.yaml
-oc rollout status deployment/echo -n tutorial-app --timeout=120s
+oc rollout restart deployment/echo -n tutorial-app
+oc rollout status deployment/echo -n tutorial-app --timeout=180s
 ```
 
 
@@ -358,20 +365,14 @@ Then stop here. Use **11d** only when you need deeper cross-component correlatio
 
 Obtain a token from Keycloak (AuthPolicy requires JWT authentication) and send requests through the gateway:
 
-```bash
-export CLUSTER_DOMAIN=$(oc get ingresses.config.openshift.io cluster -o jsonpath='{.spec.domain}')
-export KEYCLOAK_HOST=$(oc get route keycloak -n keycloak -o jsonpath='{.spec.host}')
-
-TOKEN=$(curl -sk -X POST "https://$KEYCLOAK_HOST/realms/connectivity-link-tutorial/protocol/openid-connect/token" \
-  -H "Content-Type: application/x-www-form-urlencoded" \
-  -d "grant_type=password&client_id=tutorial-app&client_secret=tutorial-app-secret&username=testuser&password=testuser" \
-  | python3 -c "import sys,json; print(json.load(sys.stdin)['access_token'])")
+```shell
+source export-cluster-env.sh
+export TOKEN=$(get_token)
 
 for i in $(seq 1 5); do
   curl -sk -o /dev/null -w "Request $i: HTTP %{http_code}\n" \
     "https://echo.$CLUSTER_DOMAIN/" \
-    -H "Authorization: Bearer $TOKEN" \
-    -H "x-request-id: smoke-test-$i"
+    -H "Authorization: Bearer $TOKEN"
   sleep 1
 done
 ```

@@ -19,8 +19,8 @@ The echo service is useful for verifying that traffic flows correctly through th
 - [03 — Create Gateway](../03-gateway/) completed
 - `CLUSTER_DOMAIN` environment variable set:
 
-```bash
-export CLUSTER_DOMAIN=$(oc get ingresses.config/cluster -o jsonpath='{.spec.domain}')
+```shell
+source export-cluster-env.sh
 ```
 
 ## Step 1 — Create the application namespace

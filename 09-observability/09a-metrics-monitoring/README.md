@@ -72,10 +72,10 @@ data:
 ```
 </details>
 
-Wait for the user workload monitoring Prometheus pods to start:
+Wait for the user workload monitoring Prometheus pods to start (may take 30–60 seconds after the ConfigMap is applied):
 
-```bash
-oc wait --for=condition=Ready pod -l app.kubernetes.io/name=prometheus -n openshift-user-workload-monitoring --timeout=120s
+```shell
+oc wait --for=condition=Ready pod -l app.kubernetes.io/name=prometheus -n openshift-user-workload-monitoring --timeout=180s
 ```
 
 Verify the pods are running:

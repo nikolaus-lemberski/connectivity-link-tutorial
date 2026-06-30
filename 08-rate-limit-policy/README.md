@@ -78,14 +78,9 @@ oc get ratelimitpolicy echo-rate-limit -n tutorial-app -o jsonpath='{.status.con
 
 Since AuthPolicy is already enforced, you need a valid JWT to test rate limiting:
 
-```bash
-export CLUSTER_DOMAIN=$(oc get ingresses.config.openshift.io cluster -o jsonpath='{.spec.domain}')
-export KEYCLOAK_HOST=$(oc get route keycloak -n keycloak -o jsonpath='{.spec.host}')
-
-export TOKEN=$(curl -sk -X POST "https://$KEYCLOAK_HOST/realms/connectivity-link-tutorial/protocol/openid-connect/token" \
-  -H "Content-Type: application/x-www-form-urlencoded" \
-  -d "grant_type=password&client_id=tutorial-app&client_secret=tutorial-app-secret&username=testuser&password=testuser" \
-  | python3 -c "import sys,json; print(json.load(sys.stdin)['access_token'])")
+```shell
+source export-cluster-env.sh
+export TOKEN=$(get_token)
 ```
 
 ## Step 4: Verify — Send Requests Within the Limit (200)

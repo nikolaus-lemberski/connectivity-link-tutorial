@@ -15,23 +15,40 @@ Hands-on tutorial for securing, protecting, and observing APIs on OpenShift usin
 
 - OpenShift Container Platform 4.19+ with `cluster-admin` access
 - `oc` CLI installed and logged in
+- `envsubst` (GNU gettext) and `python3`
 - Red Hat subscription including Connectivity Link
-- cert-manager Operator for Red Hat OpenShift 1.18 installed
+- cert-manager Operator for Red Hat OpenShift 1.18+ installed
+
+Set common environment variables once:
+
+```shell
+source export-cluster-env.sh
+```
 
 ## Tutorial Sections
 
 | # | Section | Description |
 |---|---------|-------------|
 | 00 | [Prerequisites](./00-prerequisites/) | Cluster and tooling requirements |
-| 01 | [Install Connectivity Link](./01-install/) | Operator and Kuadrant CR setup |
+| 01 | [Install Connectivity Link](./01-install/) | Operator and Kuadrant CR setup (RHCL 1.3) |
 | 02 | [cert-manager Setup](./02-cert-manager/) | Certificate issuer configuration |
-| 03 | [Create Gateway](./03-gateway/) | Gateway API resource |
+| 03 | [Create Gateway](./03-gateway/) | Gateway API resource (HTTP) |
 | 04 | [Deploy Application](./04-app/) | Sample REST service + HTTPRoute |
-| 05 | [TLS Policy](./05-tls-policy/) | Automate TLS certificates |
+| 05 | [TLS Policy](./05-tls-policy/) | Automate TLS certificates (HTTPS) |
 | 06 | [Keycloak Setup](./06-keycloak/) | Identity provider for OIDC |
 | 07 | [Auth Policy](./07-auth-policy/) | OIDC authentication via Keycloak |
 | 08 | [Rate Limit Policy](./08-rate-limit-policy/) | Request rate limiting |
 | 09 | [Observability](./09-observability/) | Metrics, Perses dashboards, tracing |
+| 10 | [Cleanup](./10-cleanup/) | Remove tutorial resources |
+
+### Observability subsections
+
+| # | Section | Description |
+|---|---------|-------------|
+| 09a | [Metrics & Monitoring](./09-observability/09a-metrics-monitoring/) | User workload monitoring, Kuadrant metrics |
+| 09b | [Perses Dashboards](./09-observability/09b-dashboards/) | COO, Perses UI, dashboards |
+| 09c | [Tracing (optional)](./09-observability/09c-tracing/) | Tempo, OpenTelemetry, distributed tracing |
+| 09d | [Access Logs](./09-observability/09d-access-logs/) | Envoy access logs and correlation |
 
 ## Architecture
 

@@ -41,47 +41,14 @@ The plain HTTP Route from Phase 03 is replaced by the HTTPS passthrough Route in
 
 The Gateway needs an HTTPS listener for TLSPolicy to manage. The listener references a Secret that TLSPolicy will create via cert-manager.
 
-Review the updated manifest:
+Apply the updated Gateway (adds the HTTPS listener):
 
-```yaml
-# 03-gateway/gateway.yaml (updated — adds https listener)
-apiVersion: gateway.networking.k8s.io/v1
-kind: Gateway
-metadata:
-  name: api-gateway
-  namespace: openshift-ingress
-spec:
-  gatewayClassName: openshift-default
-  listeners:
-    - name: http
-      protocol: HTTP
-      port: 80
-      allowedRoutes:
-        namespaces:
-          from: All
-    - name: https
-      protocol: HTTPS
-      port: 443
-      hostname: echo.${CLUSTER_DOMAIN}
-      allowedRoutes:
-        namespaces:
-          from: All
-      tls:
-        mode: Terminate
-        certificateRefs:
-          - name: api-gateway-tls
-            kind: Secret
+```shell
+source export-cluster-env.sh
+envsubst < 05-tls-policy/gateway.yaml | oc apply -f -
 ```
 
-Apply the updated Gateway:
-
-```bash
-export CLUSTER_DOMAIN=$(oc get ingresses.config.openshift.io cluster -o jsonpath='{.spec.domain}')
-
-envsubst < 03-gateway/gateway.yaml | oc apply -f -
-```
-
-The HTTPS listener will show as **not Programmed** initially — this is expected because the TLS secret doesn't exist yet:
+The HTTPS listener will show as **not Programmed** initially — this is expected because the TLS secret does not exist yet:
 
 ```bash
 oc get gateway api-gateway -n openshift-ingress
@@ -125,11 +92,11 @@ oc get tlspolicy api-gateway-tls -n openshift-ingress
 
 Check that a Certificate was created and issued:
 
-```bash
+```shell
 oc get certificates -n openshift-ingress
 ```
 
-You should see a Certificate with `READY: True`. Verify the TLS secret exists:
+You should see a Certificate named `api-gateway-https` with `READY: True`. Verify the TLS secret exists:
 
 ```bash
 oc get secret api-gateway-tls -n openshift-ingress

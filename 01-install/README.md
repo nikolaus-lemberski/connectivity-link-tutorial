@@ -95,21 +95,26 @@ spec:
   name: rhcl-operator
   source: redhat-operators
   sourceNamespace: openshift-marketplace
+  startingCSV: rhcl-operator.v1.3.4
 ```
 </details>
 
 Wait for the Operator to install:
 
-```bash
-oc wait --for=jsonpath='{.status.installPlanRef.name}' subscription rhcl-operator -n kuadrant-system --timeout=60s
+```shell
+oc wait --for=jsonpath='{.status.installPlanRef.name}' subscription rhcl-operator -n kuadrant-system --timeout=120s
 ```
 
 Then wait for the install plan to complete:
 
-```bash
+```shell
 IP=$(oc get subscription rhcl-operator -n kuadrant-system -o jsonpath='{.status.installPlanRef.name}')
-oc wait --for=condition=Installed installplan ${IP} -n kuadrant-system --timeout=120s
+oc wait --for=condition=Installed installplan ${IP} -n kuadrant-system --timeout=180s
 ```
+
+> **Version pin:** The subscription uses `startingCSV: rhcl-operator.v1.3.4` to install Red Hat Connectivity Link **1.3**. If a newer version is already installed, delete the existing subscription and CSV in `kuadrant-system`, then re-apply `subscription.yaml`.
+>
+> **Note:** RHCL may also install the Red Hat OpenShift Service Mesh operator as a dependency.
 
 ### 4. Verify the Operator
 

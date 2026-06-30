@@ -71,22 +71,12 @@ spec:
 
 Wait for the operator to install:
 
-```bash
-oc wait --for=jsonpath='{.status.state}'=AtLatestKnown \
-  subscription/cluster-observability-operator \
-  -n openshift-cluster-observability-operator --timeout=120s
-```
-
-Verify the CSV succeeded and the Perses CRDs are registered:
-
-```bash
-oc get csv -n openshift-cluster-observability-operator | grep cluster-observability
-# cluster-observability-operator.v1.5.0   Cluster Observability Operator   1.5.0   Succeeded
+```shell
+oc wait csv -n openshift-cluster-observability-operator \
+  -l operators.coreos.com/cluster-observability-operator \
+  --for=jsonpath='{.status.phase}'=Succeeded --timeout=300s
 
 oc get crds | grep perses
-# persesdashboards.perses.dev
-# persesdatasources.perses.dev
-# persesglobaldatasources.perses.dev
 ```
 
 Confirm the operators are running:
@@ -252,7 +242,7 @@ oc get persesdashboards -n kuadrant-system
 > **Tip:** If the dashboard shows no data, generate traffic by sending requests through the gateway:
 >
 > ```bash
-> TOKEN=$(curl -sk "https://sso.${CLUSTER_DOMAIN}/realms/connectivity-link-tutorial/protocol/openid-connect/token" \
+> TOKEN=$(curl -sk "https://keycloak.${CLUSTER_DOMAIN}/realms/connectivity-link-tutorial/protocol/openid-connect/token" \
 >   -d "grant_type=password&client_id=tutorial-app&client_secret=tutorial-app-secret&username=testuser&password=testuser" \
 >   | python3 -c "import sys,json; print(json.load(sys.stdin)['access_token'])")
 >

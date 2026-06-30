@@ -2,11 +2,11 @@ apiVersion: k8s.keycloak.org/v2alpha1
 kind: KeycloakRealmImport
 metadata:
   name: connectivity-link-tutorial
-  namespace: keycloak
+  namespace: tutorial-keycloak
   labels:
     app.kubernetes.io/part-of: connectivity-link-tutorial
 spec:
-  keycloakCRName: keycloak
+  keycloakCRName: tutorial-keycloak
   realm:
     realm: connectivity-link-tutorial
     id: connectivity-link-tutorial

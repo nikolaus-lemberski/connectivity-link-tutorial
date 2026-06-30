@@ -2,21 +2,21 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: keycloak-pgsql-user
-  namespace: keycloak
+  namespace: tutorial-keycloak
   labels:
     app.kubernetes.io/part-of: connectivity-link-tutorial
 stringData:
   user: keycloak
   password: ${KEYCLOAK_DB_PASSWORD}
   dbname: keycloak
-  host: keycloak-pgsql.keycloak.svc
+  host: keycloak-pgsql.tutorial-keycloak.svc
   port: "5432"
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: keycloak-pgsql-data
-  namespace: keycloak
+  namespace: tutorial-keycloak
   labels:
     app.kubernetes.io/part-of: connectivity-link-tutorial
 spec:
@@ -24,13 +24,13 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 50Gi
+      storage: 10Gi
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: keycloak-pgsql
-  namespace: keycloak
+  namespace: tutorial-keycloak
   labels:
     app.kubernetes.io/part-of: connectivity-link-tutorial
 spec:
@@ -88,7 +88,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: keycloak-pgsql
-  namespace: keycloak
+  namespace: tutorial-keycloak
   labels:
     app.kubernetes.io/part-of: connectivity-link-tutorial
 spec:

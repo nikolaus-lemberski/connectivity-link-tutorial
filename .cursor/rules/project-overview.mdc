@@ -28,7 +28,7 @@ This project is a tutorial demonstrating Red Hat Connectivity Link 1.3 on OpenSh
 - Prefer Operators (installed via OLM) over Helm charts
 - Use plain Kubernetes/OpenShift manifest YAML files
 - Keep manifests simple and readable for tutorial purposes
-- Namespace: `kuadrant-system` for operator, `api-gateway` for gateway, `keycloak` for Keycloak, app namespaces as needed
+- Namespace: `kuadrant-system` for operator, `api-gateway` for gateway, `tutorial-keycloak` for Keycloak, app namespaces as needed
 - Use `oc` CLI commands (OpenShift), not plain `kubectl`
 - Reference official Red Hat docs: https://docs.redhat.com/en/documentation/red_hat_connectivity_link/1.3/
 

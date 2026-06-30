@@ -51,7 +51,7 @@ spec:
     authentication:
       keycloak-jwt:
         jwt:
-          issuerUrl: https://sso.${CLUSTER_DOMAIN}/realms/connectivity-link-tutorial
+          issuerUrl: https://keycloak.${CLUSTER_DOMAIN}/realms/connectivity-link-tutorial
 ```
 
 Key points:
@@ -61,24 +61,25 @@ Key points:
 
 ## Step 2: Apply the AuthPolicy
 
-```bash
-export CLUSTER_DOMAIN=$(oc get ingresses.config.openshift.io cluster -o jsonpath='{.spec.domain}')
-
+```shell
+source export-cluster-env.sh
 envsubst < 07-auth-policy/auth-policy.yaml | oc apply -f -
 ```
 
 Wait for the policy to be accepted and enforced:
 
-```bash
+```shell
 oc get authpolicy echo-auth -n tutorial-app
 ```
 
 Both conditions should be `True`:
 
-```bash
+```shell
 oc get authpolicy echo-auth -n tutorial-app -o jsonpath='{.status.conditions}' | python3 -m json.tool
 # Accepted: True, Enforced: True
 ```
+
+> **Note:** Envoy may take up to 60 seconds to enforce the policy after the AuthPolicy shows `Enforced`. Wait before running the verification curls below.
 
 ## Step 3: Verify — Request Without Token (401)
 
@@ -101,7 +102,7 @@ Expected: **HTTP 401 Unauthorized** — token is not a valid JWT.
 Obtain a token from Keycloak and send an authenticated request:
 
 ```bash
-export KEYCLOAK_HOST=$(oc get route keycloak -n keycloak -o jsonpath='{.spec.host}')
+export KEYCLOAK_HOST=$(oc get route tutorial-keycloak -n tutorial-keycloak -o jsonpath='{.spec.host}')
 
 export TOKEN=$(curl -sk -X POST "https://$KEYCLOAK_HOST/realms/connectivity-link-tutorial/protocol/openid-connect/token" \
   -H "Content-Type: application/x-www-form-urlencoded" \

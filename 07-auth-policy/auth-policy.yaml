@@ -14,4 +14,4 @@ spec:
     authentication:
       keycloak-jwt:
         jwt:
-          issuerUrl: https://sso.${CLUSTER_DOMAIN}/realms/connectivity-link-tutorial
+          issuerUrl: https://keycloak.${CLUSTER_DOMAIN}/realms/connectivity-link-tutorial

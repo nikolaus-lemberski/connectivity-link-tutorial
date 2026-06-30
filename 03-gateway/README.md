@@ -28,15 +28,15 @@ All OpenShift documentation places the Gateway in the `openshift-ingress` namesp
 
 ## Step 1 — Create the Gateway
 
-```bash
+```shell
 oc apply -f 03-gateway/gateway.yaml
 ```
 
-This creates a Gateway with an HTTP listener on port 80 that accepts HTTPRoutes from all namespaces.
+This creates a Gateway with an HTTP listener on port 80 that accepts HTTPRoutes from all namespaces. The HTTPS listener is added in [05 — TLS Policy](../05-tls-policy/).
 
 Verify the Gateway is accepted:
 
-```bash
+```shell
 oc get gateway -n openshift-ingress
 # NAME          CLASS               ADDRESS   PROGRAMMED   AGE
 # api-gateway   openshift-default             False        ...
@@ -44,24 +44,24 @@ oc get gateway -n openshift-ingress
 
 > **Note:** `PROGRAMMED=False` is expected on bare-metal clusters without a load balancer controller. The Envoy proxy is running — it just has no external IP assigned.
 
-Confirm the gateway deployment is running:
+Confirm the gateway deployment is running (may take 15–30 seconds after apply):
 
-```bash
-oc get pods -n openshift-ingress -l istio.io/gateway-name=api-gateway
+```shell
+oc get pods -n openshift-ingress -l gateway.networking.k8s.io/gateway-name=api-gateway
 ```
 
 ## Step 2 — Expose the Gateway via an OpenShift Route
 
 The Route manifest uses `${CLUSTER_DOMAIN}` as a placeholder. Set the variable and apply with `envsubst`:
 
-```bash
-export CLUSTER_DOMAIN=$(oc get ingresses.config/cluster -o jsonpath='{.spec.domain}')
+```shell
+source export-cluster-env.sh
 envsubst < 03-gateway/route.yaml | oc apply -f -
 ```
 
 Verify the Route:
 
-```bash
+```shell
 oc get route api-gateway -n openshift-ingress
 # NAME          HOST/PORT                        PATH   SERVICES                        PORT   ...
 # api-gateway   echo.apps.<cluster-domain>              api-gateway-openshift-default   http   ...
@@ -69,9 +69,14 @@ oc get route api-gateway -n openshift-ingress
 
 Test that traffic reaches the Envoy gateway (expect HTTP 404 — no HTTPRoutes exist yet):
 
-```bash
-curl -s -o /dev/null -w "%{http_code}" http://echo.${CLUSTER_DOMAIN}/
-# 404
+```shell
+for i in 1 2 3 4 5; do
+  CODE=$(curl -s -o /dev/null -w "%{http_code}" http://echo.$CLUSTER_DOMAIN/)
+  echo "Attempt $i: HTTP $CODE"
+  [ "$CODE" = "404" ] && break
+  sleep 5
+done
+# Should eventually show 404 (503 means the gateway pod is still starting)
 ```
 
 A `404` from Envoy confirms the gateway is receiving traffic.
