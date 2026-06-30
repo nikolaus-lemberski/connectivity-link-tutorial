@@ -9,7 +9,8 @@ On OpenShift, the Cluster Ingress Operator implements Gateway API using a lightw
 - An Envoy-based proxy deployment
 - A `LoadBalancer`-type service
 
-On bare-metal / on-premise clusters without a cloud load balancer (e.g., no MetalLB), the service remains in a `Pending` state. To work around this, we create an **OpenShift Route** that forwards traffic from the default router to the gateway service. The wildcard DNS (`*.apps.<cluster>`) already resolves to the node, so any hostname under that domain reaches the default router.
+> [!NOTE]
+> On bare-metal / on-premise clusters without a cloud load balancer (e.g., no MetalLB), the service remains in a `Pending` state. To work around this, we create an **OpenShift Route** that forwards traffic from the default router to the gateway service. The wildcard DNS (`*.apps.<cluster>`) already resolves to the node, so any hostname under that domain reaches the default router.
 
 **Traffic flow:**
 
