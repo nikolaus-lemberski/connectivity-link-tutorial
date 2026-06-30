@@ -10,21 +10,21 @@
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│  Cluster Observability Operator (COO)                           │
+│ Cluster Observability Operator (COO)                            │
 │                                                                 │
-│  ┌─────────────────┐    ┌──────────────────────────────────┐    │
-│  │ Perses Operator │    │ UIPlugin (Monitoring)            │    │
-│  │                 │    │  → Perses UI in OpenShift console│    │
-│  │  Reconciles:    │    │  → Perses server instance        │    │
-│  │  - Dashboards   │    └──────────────────────────────────┘    │
-│  │  - Datasources  │                                            │
-│  └─────────────────┘                                            │
+│ ┌─────────────────┐    ┌───────────────────────────────────┐    │
+│ │ Perses Operator │    │ UIPlugin (Monitoring)             │    │
+│ │                 │    │  → Perses UI in OpenShift console │    │
+│ │ Reconciles:     │    │  → Perses server instance         │    │
+│ │ - Dashboards    │    └───────────────────────────────────┘    │
+│ │ - Datasources   │                                             │
+│ └─────────────────┘                                             │
 │                                                                 │
-│  CRDs:                                                          │
-│  ┌──────────────────┐ ┌────────────────┐ ┌───────────────────┐  │
-│  │ PersesDashboard  │ │PersesDatasource│ │PersesGlobal       │  │
-│  │ (namespaced)     │ │ (namespaced)   │ │  Datasource       │  │
-│  └──────────────────┘ └────────────────┘ └───────────────────┘  │
+│ CRDs:                                                           │
+│ ┌──────────────────┐ ┌─────────────────┐ ┌───────────────────┐  │
+│ │ PersesDashboard  │ │ PersesDatasource│ │ PersesGlobal      │  │ 
+│ │ (namespaced)     │ │ (namespaced)    │ │ Datasource        │  │
+│ └──────────────────┘ └─────────────────┘ └───────────────────┘  │
 └─────────────────────────────────────────────────────────────────┘
 ```
 

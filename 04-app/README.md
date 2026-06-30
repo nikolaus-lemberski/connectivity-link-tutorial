@@ -121,23 +121,22 @@ curl -s -X POST -H "Content-Type: application/json" \
                   *.apps DNS
                       │
                       ▼
-              ┌───────────────┐
-              │  Default Router│  (HAProxy, HostNetwork)
-              │  Port 80/443  │
-              └───────┬───────┘
-                      │ OpenShift Route
-                      ▼
-              ┌───────────────┐
-              │  Envoy Gateway │  (api-gateway-openshift-default)
-              │  openshift-    │
-              │  ingress       │
-              └───────┬───────┘
-                      │ HTTPRoute
-                      ▼
-              ┌───────────────┐
-              │  Echo Service  │  (tutorial-app namespace)
-              │  Port 80→8080 │
-              └───────────────┘
+              ┌─────────────────┐
+              │ Default Router  │  (HAProxy, HostNetwork)
+              │ Port 80/443     │
+              └────────┬────────┘
+                       │ OpenShift Route
+                       ▼
+              ┌─────────────────┐
+              │ Envoy Gateway   │  (api-gateway-openshift-default)
+              │ openshift-ingress│
+              └────────┬────────┘
+                       │ HTTPRoute
+                       ▼
+              ┌─────────────────┐
+              │ Echo Service    │  (tutorial-app namespace)
+              │ Port 80 → 8080  │
+              └─────────────────┘
 ```
 
 ## Next steps

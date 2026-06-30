@@ -6,32 +6,40 @@
 
 > **Important:** This tutorial deploys its own Keycloak in a dedicated `tutorial-keycloak` namespace. Many workshop clusters already have a Keycloak instance in the `keycloak` namespace at `sso.${CLUSTER_DOMAIN}` for OpenShift console login. The tutorial deliberately uses a **separate namespace and hostname** to avoid interfering with the cluster's authentication.
 
+
+
 ## Architecture
 
 Keycloak provides the OIDC identity provider that AuthPolicy (Phase 07) will use to validate JWT tokens:
 
 ```
-┌────────────┐  1. get token  ┌───────────┐  2. request + Bearer token  ┌──────────────┐
-│   Client   │ ──────────────►│ Keycloak  │                             │   Gateway    │
-│            │◄──────────────┐│  (OIDC)   │                             │   (Envoy)    │
-│            │  access_token ││           │    3. verify JWT (JWKS)     │              │
-│            │               │└───────────┘◄────────────────────────────│  AuthPolicy  │
-│            │               │                                          │              │
-│            │───────────────┼─────────────────────────────────────────►│              │
-│            │               │                                          │              │
-└────────────┘               │                                          └──────┬───────┘
-                             │                                                 │
-                             │                                                 ▼
-                             │                                          ┌──────────────┐
-                             │                                          │  echo Service│
-                             └──────────────────────────────────────────└──────────────┘
+  ┌──────────┐  1. token request   ┌───────────┐
+  │  Client  │ ───────────────────►│ Keycloak  │
+  │          │◄────────────────────│  (OIDC)   │
+  └────┬─────┘  2. access_token    └─────▲─────┘
+       │                                  │ JWKS
+       │ 3. GET / + Bearer token          │
+       ▼                                  │
+  ┌──────────────────────────────────────┴─────┐
+  │              Gateway (Envoy)               │
+  │              + AuthPolicy                  │
+  └────────────────────┬───────────────────────┘
+                       │ 4. authenticated request
+                       ▼
+                ┌──────────────┐
+                │ echo Service │
+                └──────────────┘
 ```
+
+
 
 ## Step 1: Create the Keycloak Namespace
 
 ```shell
 oc apply -f 06-keycloak/namespace.yaml
 ```
+
+
 
 ## Step 2: Install the Red Hat build of Keycloak Operator
 
@@ -46,6 +54,8 @@ Wait for the operator to install:
 ```shell
 oc wait csv -n tutorial-keycloak -l operators.coreos.com/rhbk-operator.tutorial-keycloak --for=jsonpath='{.status.phase}'=Succeeded --timeout=300s
 ```
+
+
 
 ## Step 3: Deploy PostgreSQL for Keycloak
 
@@ -64,9 +74,12 @@ Wait for PostgreSQL to become ready:
 oc rollout status deployment/keycloak-pgsql -n tutorial-keycloak --timeout=120s
 ```
 
+
+
 ## Step 4: Deploy Keycloak
 
 The Keycloak CR creates a single-instance server with:
+
 - PostgreSQL backend (from Step 3)
 - TLS via OpenShift service-serving certificates
 - Ingress disabled (we use an OpenShift Route instead)
@@ -104,6 +117,8 @@ curl -sk -o /dev/null -w "%{http_code}" https://keycloak.$CLUSTER_DOMAIN/
 # Should return 302 (redirect to login page)
 ```
 
+
+
 ## Step 5: Retrieve the Keycloak Admin Credentials
 
 The operator generates initial admin credentials in a Secret:
@@ -135,6 +150,8 @@ oc wait keycloakrealmimport/connectivity-link-tutorial -n tutorial-keycloak \
   --timeout=180s
 ```
 
+
+
 ## Step 7: Verify OIDC Token Retrieval
 
 Test the OIDC token endpoint using the Resource Owner Password Credentials grant:
@@ -148,16 +165,22 @@ echo "$TOKEN"
 > **OIDC Discovery URL** (needed for AuthPolicy in Phase 07):
 > `https://keycloak.${CLUSTER_DOMAIN}/realms/connectivity-link-tutorial`
 
+
+
 ## OIDC Configuration Reference
 
-| Parameter | Value |
-|-----------|-------|
-| Issuer URL | `https://keycloak.${CLUSTER_DOMAIN}/realms/connectivity-link-tutorial` |
+
+| Parameter      | Value                                                                                                |
+| -------------- | ---------------------------------------------------------------------------------------------------- |
+| Issuer URL     | `https://keycloak.${CLUSTER_DOMAIN}/realms/connectivity-link-tutorial`                               |
 | Token endpoint | `https://keycloak.${CLUSTER_DOMAIN}/realms/connectivity-link-tutorial/protocol/openid-connect/token` |
-| JWKS URI | `https://keycloak.${CLUSTER_DOMAIN}/realms/connectivity-link-tutorial/protocol/openid-connect/certs` |
-| Client ID | `tutorial-app` |
-| Client secret | `tutorial-app-secret` |
-| Test user | `testuser` / `testuser` |
+| JWKS URI       | `https://keycloak.${CLUSTER_DOMAIN}/realms/connectivity-link-tutorial/protocol/openid-connect/certs` |
+| Client ID      | `tutorial-app`                                                                                       |
+| Client secret  | `tutorial-app-secret`                                                                                |
+| Test user      | `testuser` / `testuser`                                                                              |
+
+
+
 
 ## Verify
 

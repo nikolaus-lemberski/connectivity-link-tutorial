@@ -23,39 +23,38 @@ This section has two tracks so you can get a working demo quickly, then add deep
 - child span service: `echo` (`GET /`)
 - HTTP responses from `https://echo.$CLUSTER_DOMAIN/` are `200`
 
+
+
 ## Overview
 
 Distributed tracing lets you follow a single request as it flows through the gateway, policy enforcement components, and into your application. By instrumenting the echo service with an OpenTelemetry sidecar collector and auto-instrumentation, we get correlated end-to-end traces from Envoy through the application — not just isolated spans from each component.
 
 ```
                           ┌──────────────────────────────────────┐
-                          │  Tempo Operator                      │
-                          │                                      │
-  ┌─────────┐  OTLP/gRPC  │  ┌──────────┐  OTLP/HTTP  ┌───────┐  │
-  │ Envoy   │────────────►│  │  OTel    │────────────►│Tempo  │  │
-  │ gateway │             │  │Collector │  (bearer    │Gateway│  │
-  └────┬────┘             │  │ (central)│   token +   └───┬───┘  │
-       │ traceparent      │  │          │   tenant)       │      │
-  ┌────▼────────────────┐ │  └─────▲────┘           ┌─────▼───┐  │
-  │ Echo Pod            │ │        │                │Distrib- │  │
-  │ ┌───────┐ ┌───────┐ │ │        │                │  utor   │  │
-  │ │ echo  │►│ OTel  │ │─┼────────┘                └────┬────┘  │
-  │ │  app  │ │sidecar│ │ │  OTLP/gRPC              ┌────▼────┐  │
-  │ └───────┘ └───────┘ │ │                         │Ingester │  │
-  └─────────────────────┘ │                         └────┬────┘  │
-  ┌─────────┐             │                         ┌────▼────┐  │
-  │Authorino│────────────►│                         │ODF/S3   │  │
-  └─────────┘             │                         └─────────┘  │
+                          │ Tempo namespace                      │
   ┌─────────┐             │                                      │
-  │Limitador│────────────►│                                      │
+  │ Envoy   │─OTLP/gRPC──►│  OTel Collector ──► Tempo Gateway    │
+  │ gateway │             │         ▲                 │          │
+  └────┬────┘             │         │                 ▼          │
+       │ traceparent      │         │          ┌───────────────┐ │
+  ┌────▼──────────────┐   │         │          │ Distributor   │ │
+  │ Echo Pod          │──►│         │          └───────┬───────┘ │
+  │  echo app + OTel  │   │                            ▼         │
+  │  sidecar          │   │                        ┌─────────┐   │
+  └───────────────────┘   │                        │ Ingester│   │
+  ┌─────────┐             │                        └────┬────┘   │
+  │Authorino│─OTLP/gRPC──►│                             ▼        │
+  └─────────┘             │                        ┌─────────┐   │
+  ┌─────────┐             │                        │ ODF/S3  │   │
+  │Limitador│─OTLP/gRPC──►│                        └─────────┘   │
   └─────────┘             └──────────────────────────────────────┘
-                                        │
-                                        ▼
-                          ┌──────────────────────────────────────┐
-                          │ OpenShift Console                    │
-                          │ Observe → Traces (Distributed        │
-                          │ Tracing UI Plugin)                   │
-                          └──────────────────────────────────────┘
+                                       │
+                                       ▼
+                         ┌──────────────────────────────────────┐
+                         │ OpenShift Console                    │
+                         │ Observe → Traces (Distributed        │
+                         │ Tracing UI Plugin)                   │
+                         └──────────────────────────────────────┘
 ```
 
 **Architecture highlights (short):**
@@ -349,6 +348,8 @@ oc get consoleplugin distributed-tracing-console-plugin
 
 ## Step 11: Verify Tracing End-to-End
 
+
+
 ### 11.0: Quick verification path (Track A)
 
 If you only need a quick demonstration, do these in order:
@@ -358,8 +359,6 @@ If you only need a quick demonstration, do these in order:
 3. **11c** Open **Observe -> Traces** and confirm one correlated `envoy-gateway -> echo` trace
 
 Then stop here. Use **11d** only when you need deeper cross-component correlation.
-
-
 
 ### 11a: Generate Traffic
 
@@ -429,12 +428,12 @@ Use that request ID to search for the correlated trace.
 With the echo service instrumented via auto-instrumentation and sidecar, you now get **correlated traces** between Envoy and the echo application. Other components still report independently.
 
 
-| Service name             | Typical spans per trace | What it shows                                                                                                                                                         |
-| ------------------------ | ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Service name             | Typical spans per trace | What it shows                                                                                                                                          |
+| ------------------------ | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `envoy-gateway` + `echo` | 2 (correlated)          | End-to-end: 1 Envoy root span → 1 echo `GET /` child span. Envoy propagates `traceparent` to the echo service, so both spans appear in a single trace. |
-| `authorino`              | 1                       | A single authentication/authorization check (Track B)                                                                                                                  |
-| `limitador`              | 1                       | A single rate-limit evaluation (Track B)                                                                                                                               |
-| `wasm-shim`              | 10+                     | The full Kuadrant policy evaluation pipeline (Track B)                                                                                                                 |
+| `authorino`              | 1                       | A single authentication/authorization check (Track B)                                                                                                  |
+| `limitador`              | 1                       | A single rate-limit evaluation (Track B)                                                                                                               |
+| `wasm-shim`              | 10+                     | The full Kuadrant policy evaluation pipeline (Track B)                                                                                                 |
 
 
 **Correlated Envoy + echo traces** show the full request lifecycle: how long the request spent in the Envoy proxy vs. how long the application took to process it. This is the key benefit of instrumenting the echo service.
@@ -451,14 +450,18 @@ With the echo service instrumented via auto-instrumentation and sidecar, you now
 
 ## Troubleshooting (Quick Matrix)
 
-| Symptom | Likely cause | What to check |
-| ------- | ------------ | ------------- |
-| No **Observe -> Traces** menu item | UI plugin not available yet / stale browser session | `oc get uiplugin distributed-tracing`; refresh console or log out/in |
-| `curl` to echo returns `401` | Missing or expired token | Re-run token request in 11a; token lifetime is short |
-| Traces exist but no `echo` spans | Echo instrumentation not active | Echo pod annotations in `04-app/deployment.yaml`; `otc-container` and `opentelemetry-auto-instrumentation-python` init/sidecar presence |
-| `envoy-gateway` trace exists but not correlated with `echo` | Missing/incorrect trace context propagation or outdated echo image | Confirm echo uses middleware with `OpenTelemetryMiddleware`; re-rollout deployment if needed |
-| No new traces from gateway | Envoy not exporting to collector | `pilot-agent request GET clusters` check in 11b (`rq_total > 0`) |
-| No Track B service traces (`wasm-shim`/`authorino`/`limitador`) | Kuadrant tracing not configured | Apply/check `09-observability/09c-tracing/kuadrant-tracing.yaml` and Kuadrant `Ready` condition |
+
+| Symptom                                                         | Likely cause                                                       | What to check                                                                                                                           |
+| --------------------------------------------------------------- | ------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------- |
+| No **Observe -> Traces** menu item                              | UI plugin not available yet / stale browser session                | `oc get uiplugin distributed-tracing`; refresh console or log out/in                                                                    |
+| `curl` to echo returns `401`                                    | Missing or expired token                                           | Re-run token request in 11a; token lifetime is short                                                                                    |
+| Traces exist but no `echo` spans                                | Echo instrumentation not active                                    | Echo pod annotations in `04-app/deployment.yaml`; `otc-container` and `opentelemetry-auto-instrumentation-python` init/sidecar presence |
+| `envoy-gateway` trace exists but not correlated with `echo`     | Missing/incorrect trace context propagation or outdated echo image | Confirm echo uses middleware with `OpenTelemetryMiddleware`; re-rollout deployment if needed                                            |
+| No new traces from gateway                                      | Envoy not exporting to collector                                   | `pilot-agent request GET clusters` check in 11b (`rq_total > 0`)                                                                        |
+| No Track B service traces (`wasm-shim`/`authorino`/`limitador`) | Kuadrant tracing not configured                                    | Apply/check `09-observability/09c-tracing/kuadrant-tracing.yaml` and Kuadrant `Ready` condition                                         |
+
+
+
 
 ## Verify
 
@@ -477,6 +480,8 @@ With the echo service instrumented via auto-instrumentation and sidecar, you now
 - [ ] `envoy-gateway` and `echo` traces are correlated (appear in the same trace with parent-child relationship)
 
 ---
+
+
 
 ## Appendix: Why these components exist
 

@@ -59,7 +59,7 @@ source export-cluster-env.sh
   Internet ──────▶  │  Gateway (TLSPolicy)                    │
                     │     │                                   │
                     │     ├── HTTPRoute (AuthPolicy,          │
-                    │     │              RateLimitPolicy)     │
+                    │     │          RateLimitPolicy)         │
                     │     │                                   │
                     │     └──▶ Service ──▶ REST App Pod       │
                     │                                         │

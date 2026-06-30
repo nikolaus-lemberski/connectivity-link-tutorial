@@ -1,4 +1,4 @@
-# 09 — Observability
+# 09a — Metrics & Monitoring
 
 **What you'll learn:** Enable metrics collection for Connectivity Link and your gateways using OpenShift user workload monitoring, so Prometheus scrapes metrics from Envoy, Authorino, Limitador, and Gateway API state.
 
@@ -16,20 +16,21 @@ Connectivity Link exposes metrics from several sources:
 When you enable observability in the Kuadrant CR, Connectivity Link creates `ServiceMonitor` and `PodMonitor` resources that tell Prometheus where to scrape these metrics.
 
 ```
-┌──────────────────────────────────────────────────────────────────┐
-│  OpenShift User Workload Monitoring                              │
-│                                                                  │
-│  ┌────────────┐   scrape    ┌──────────────────────────────────┐ │
-│  │ Prometheus │ ◄───────────│ ServiceMonitor / PodMonitor      │ │
-│  │ (UWM)      │             │ (created by Kuadrant operator)   │ │
-│  └─────┬──────┘             └──────────────────────────────────┘ │
-│        │                                                         │
-│        │ federate                                                │
-│        ▼                                                         │
-│  ┌──────────────┐                                                │
-│  │Thanos Querier│ ◄── dashboards query here                      │
-│  └──────────────┘                                                │
-└──────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│ OpenShift User Workload Monitoring                              │
+│                                                                 │
+│ ┌────────────┐  scrape  ┌────────────────────────────────────┐  │
+│ │ Prometheus │◄─────────│ ServiceMonitor / PodMonitor        │  │
+│ │   (UWM)    │          │ (created by Kuadrant operator)     │  │
+│ └─────┬──────┘          └────────────────────────────────────┘  │
+│       │                                                         │
+│       │ federate                                                │
+│       ▼                                                         │
+│ ┌──────────────┐                                                │
+│ │ Thanos       │  ◄── dashboards query here                     │
+│ │ Querier      │                                                │
+│ └──────────────┘                                                │
+└─────────────────────────────────────────────────────────────────┘
 
 Metrics sources:
   ┌─────────┐  ┌───────────┐  ┌───────────┐  ┌──────────────────┐
@@ -195,4 +196,5 @@ These metrics form the foundation for the dashboards you will create in the next
 
 ---
 
+Previous: [09 — Observability](../README.md)
 Next: [09b — Cluster Observability Operator & Perses Dashboards](../09b-dashboards/README.md)

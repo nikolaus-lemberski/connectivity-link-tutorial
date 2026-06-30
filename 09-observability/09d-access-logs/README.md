@@ -11,13 +11,14 @@ Every request that flows through the Envoy gateway produces an **access log entr
 Access logs are the quickest way to answer "what happened to this request?" — and when combined with traces and metrics, they give you the full picture from a single request ID.
 
 ```
-Access Log (stdout)              Distributed Trace              Metrics
-┌─────────────────────┐          ┌──────────────────┐          ┌──────────────────┐
-│ x-request-id: abc   │          │ x-request-id:abc │          │ istio_requests   │
-│ response_code: 429  │◄────────►│ envoy-gateway    │◄────────►│   _total{        │
-│ duration: 4ms       │          │   └─ echo GET /  │          │     code="429"}  │
-│ route: tutorial-app │          └──────────────────┘          └──────────────────┘
+Access Log (stdout)           Distributed Trace           Metrics
+┌─────────────────────┐       ┌──────────────────┐       ┌──────────────────┐
+│ x-request-id: abc   │       │ x-request-id: abc│       │ istio_requests   │
+│ response_code: 429  │◄─────►│ envoy-gateway    │◄─────►│   _total{        │
+│ duration: 4ms       │       │   └─ echo GET /  │       │     code="429"}  │
+│ route: tutorial-app │       └──────────────────┘       └──────────────────┘
 └─────────────────────┘
+
          correlate via x-request-id and time window
 ```
 

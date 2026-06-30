@@ -15,13 +15,14 @@ TLSPolicy is a Kuadrant CRD that automates TLS certificate lifecycle management 
 
 ```
 ┌─────────────┐     creates     ┌─────────────┐     issues     ┌───────────┐
-│  TLSPolicy  │ ──────────────► │ Certificate │ ──────────────► │  Secret   │
-│             │                 │  (cert-mgr) │                 │ (TLS key) │
-└──────┬──────┘                 └─────────────┘                 └─────┬─────┘
-       │ targets                                                      │
-       ▼                                                              │ mounted
-┌─────────────┐                                                       ▼
-│   Gateway   │ ◄─────────────────────────────────────────── Envoy data plane
+│  TLSPolicy  │ ──────────────► │ Certificate │ ──────────────►│  Secret   │
+│             │                 │  (cert-mgr) │                │ (TLS key) │
+└──────┬──────┘                 └─────────────┘                └─────┬─────┘
+       │ targets                                                     │
+       │                                                             │ mounted
+       ▼                                                             ▼
+┌─────────────┐              Envoy data plane ◄─────────────────────┘
+│   Gateway   │
 │ (HTTPS:443) │
 └─────────────┘
 ```
