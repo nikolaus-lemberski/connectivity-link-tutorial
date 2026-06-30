@@ -90,12 +90,18 @@ source export-cluster-env.sh
 envsubst < 06-keycloak/keycloak.yaml | oc apply -f -
 ```
 
-The RHBK operator creates a service but does not add the OpenShift service-serving certificate annotation. Annotate it to generate the TLS secret:
+The RHBK operator creates a service but does not add the OpenShift service-serving certificate annotation. Wait for the operator to create the service, then annotate it to generate the TLS secret:
 
 ```shell
+until oc get svc tutorial-keycloak-service -n tutorial-keycloak >/dev/null 2>&1; do sleep 3; done
+
 oc annotate service tutorial-keycloak-service -n tutorial-keycloak \
   service.beta.openshift.io/serving-cert-secret-name=tutorial-keycloak-tls
+
+until oc get secret tutorial-keycloak-tls -n tutorial-keycloak >/dev/null 2>&1; do sleep 3; done
 ```
+
+> **Note:** If you annotate before the service exists, the command fails silently from the tutorial's perspective and Keycloak stays in `ContainerCreating` waiting for the missing `tutorial-keycloak-tls` secret.
 
 Wait for Keycloak to become ready:
 
