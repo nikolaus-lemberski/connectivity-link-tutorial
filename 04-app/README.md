@@ -105,6 +105,15 @@ curl -s -X POST -H "Content-Type: application/json" \
     -d '{"message":"hello from tutorial"}' \
     http://echo.$CLUSTER_DOMAIN/api/test | python3 -m json.tool
 ```
+## Console UI Plugin
+
+In the OpenShift UI, go to "Connectivity Link" -> "Overview". The Gateway state is unknown/unhealthy because it has no address (our workaround with OpenShift Route because we do not use a LoadBalancer or DNSPolicy). The HTTPRoute is healthy and enforced.
+
+![Connectivity Link Overview](../img/01-overview.png)
+
+Going to "Policy Topology" you can see what we have deployed and configured.
+
+![Policy Topology](../img/02-topology.png)
 
 ## Manifests
 
