@@ -11,7 +11,7 @@ Hands-on tutorial for securing, protecting, and observing APIs on OpenShift usin
 - Rate-limit traffic with **RateLimitPolicy**
 - Set up **Observability** with Perses dashboards, metrics, and tracing
 
-![OpenShift Connectivity Link Console UI](./img/04-authpolicy.png)
+![OpenShift Connectivity Link Console UI](./img/05-policies.png)
 
 ## Prerequisites
 
