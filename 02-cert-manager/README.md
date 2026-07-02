@@ -52,7 +52,7 @@ spec:
 ```
 </details>
 
-> **Production note:** For production environments, use an ACME issuer (such as Let's Encrypt) with DNS-01 or HTTP-01 challenge solvers. See the [cert-manager ACME issuer documentation](https://docs.redhat.com/en/documentation/cert-manager_operator_for_red_hat_openshift/1.18/html/configuring_and_managing_cloud_credentials_and_tls_certificates/cert-manager-acme-issuer) for details.
+> **Production note:** For production environments, use an ACME issuer with DNS-01 or HTTP-01 challenge solvers. See the [cert-manager documentation](https://docs.redhat.com/en/documentation/openshift_container_platform/4.21/html/security_and_compliance/cert-manager-operator-for-red-hat-openshift) for details.
 
 ## Verify
 
