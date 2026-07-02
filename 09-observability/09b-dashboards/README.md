@@ -291,5 +291,4 @@ The Kuadrant upstream project provides Grafana dashboards on [grafana.com](https
 
 ---
 
-Previous: [09a — Metrics & Monitoring](../09a-metrics-monitoring/README.md)
 Next: [09c — Tracing (Optional)](../09c-tracing/README.md)

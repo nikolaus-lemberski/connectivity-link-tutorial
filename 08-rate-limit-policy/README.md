@@ -149,5 +149,4 @@ With both AuthPolicy and RateLimitPolicy enforced, the request flow is:
 
 ---
 
-Previous: [07 — IP Restriction](../07-ip-restriction/)
 Next: [09 — Observability](../09-observability/)

@@ -196,5 +196,4 @@ These metrics form the foundation for the dashboards you will create in the next
 
 ---
 
-Previous: [09 — Observability](../README.md)
 Next: [09b — Cluster Observability Operator & Perses Dashboards](../09b-dashboards/README.md)

@@ -53,5 +53,4 @@ After completing all subsections:
 
 ---
 
-Previous: [08 — Rate Limit Policy](../08-rate-limit-policy/)
 Next: [09a — Metrics & Monitoring](./09a-metrics-monitoring/) | After observability: [10 — Cleanup](../10-cleanup/)

@@ -84,6 +84,3 @@ oc patch namespace tempo --type=json -p='[{"op":"replace","path":"/spec/finalize
 
 Re-run the cleanup script after manual fixes — it is safe to run more than once.
 
----
-
-Previous: [09d — Access Logs](../09-observability/09d-access-logs/)

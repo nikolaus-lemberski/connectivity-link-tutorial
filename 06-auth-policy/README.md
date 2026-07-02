@@ -165,5 +165,4 @@ With AuthPolicy enforced, the full request flow is:
 
 ---
 
-Previous: [05 — TLS Policy](../05-tls-policy/)
 Next: [07 — IP Restriction](../07-ip-restriction/)

@@ -169,5 +169,4 @@ echo | openssl s_client -connect echo.${CLUSTER_DOMAIN}:443 -servername echo.${C
 
 ---
 
-Previous: [04 — Deploy Application](../04-app/)
 Next: [06 — AuthPolicy](../06-auth-policy/)

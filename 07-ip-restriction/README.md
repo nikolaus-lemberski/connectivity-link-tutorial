@@ -165,5 +165,4 @@ Expected: **HTTP 200 OK**.
 
 ---
 
-Previous: [06 — AuthPolicy](../06-auth-policy/)
 Next: [08 — Rate Limit Policy](../08-rate-limit-policy/)
