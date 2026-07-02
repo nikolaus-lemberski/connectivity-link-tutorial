@@ -2,7 +2,7 @@
 
 **What you'll learn:** Use Kuadrant's RateLimitPolicy to protect your API from excessive traffic. Requests exceeding the configured rate receive HTTP 429 Too Many Requests.
 
-**Prerequisites:** Phases 00–07 completed (Gateway with TLS, echo app running, AuthPolicy enforcing JWT authentication).
+**Prerequisites:** Phases 00–07 completed (Gateway with TLS, echo app running, AuthPolicy and IP restriction configured).
 
 ## How RateLimitPolicy Works
 
@@ -149,4 +149,5 @@ With both AuthPolicy and RateLimitPolicy enforced, the request flow is:
 
 ---
 
+Previous: [07 — IP Restriction](../07-ip-restriction/)
 Next: [09 — Observability](../09-observability/)

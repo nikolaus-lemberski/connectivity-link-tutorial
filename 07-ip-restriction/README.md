@@ -1,8 +1,8 @@
-# 10 — IP Restriction (Bonus)
+# 07 — IP Restriction
 
 **What you'll learn:** Use AuthPolicy authorization rules with CEL predicates to block a specific IP address from accessing your API. Blocked requests receive HTTP 403 Forbidden.
 
-**Prerequisites:** Phases 00–09 completed (Gateway with TLS, echo app running, AuthPolicy and RateLimitPolicy enforced, observability configured).
+**Prerequisites:** Phases 00–06 completed (Gateway with TLS, echo app running, AuthPolicy enforcing JWT authentication).
 
 ## How IP Restriction Works
 
@@ -22,7 +22,7 @@ Kuadrant's AuthPolicy supports `when` conditions — CEL (Common Expression Lang
 ```
 
 The request flow:
-1. **Authentication** — JWT is validated first (existing `keycloak-jwt` rule from Phase 07)
+1. **Authentication** — JWT is validated first (existing `keycloak-jwt` rule from Phase 06)
 2. **Authorization** — The source IP is checked against the denylist
 3. If the IP **matches** the blocked IP, the OPA rule fires and returns `allow = false` → HTTP 403
 4. If the IP **does not match**, the `when` predicate is false, the deny rule is skipped, and the request proceeds
@@ -47,7 +47,7 @@ Find the `x-forwarded-for` value in the response and note the first IP — for e
 The policy replaces the existing `echo-auth` AuthPolicy. It keeps JWT authentication and adds an IP-based authorization rule that blocks a single IP:
 
 ```yaml
-# 10-ip-restriction/auth-policy-ip-restriction.yaml
+# 07-ip-restriction/auth-policy-ip-restriction.yaml
 apiVersion: kuadrant.io/v1
 kind: AuthPolicy
 metadata:
@@ -92,7 +92,7 @@ Replace `BLOCKED_IP` with the IP you discovered in Step 1 and apply:
 ```shell
 source export-cluster-env.sh
 
-sed 's/BLOCKED_IP/10.128.2.45/' 10-ip-restriction/auth-policy-ip-restriction.yaml \
+sed 's/BLOCKED_IP/10.128.2.45/' 07-ip-restriction/auth-policy-ip-restriction.yaml \
   | envsubst \
   | oc apply -f -
 ```
@@ -130,11 +130,11 @@ Expected: **HTTP 401 Unauthorized**.
 
 ## Step 4: Revert to the Original AuthPolicy
 
-Restore the JWT-only AuthPolicy from Phase 07 so the cleanup section works as expected:
+Restore the JWT-only AuthPolicy from Phase 06 so the cleanup section works as expected:
 
 ```shell
 source export-cluster-env.sh
-envsubst < 07-auth-policy/auth-policy.yaml | oc apply -f -
+envsubst < 06-auth-policy/auth-policy.yaml | oc apply -f -
 ```
 
 Verify the policy is back to its original state:
@@ -165,5 +165,5 @@ Expected: **HTTP 200 OK**.
 
 ---
 
-Previous: [09 — Observability](../09-observability/)
-Next: [11 — Cleanup](../11-cleanup/)
+Previous: [06 — AuthPolicy](../06-auth-policy/)
+Next: [08 — Rate Limit Policy](../08-rate-limit-policy/)

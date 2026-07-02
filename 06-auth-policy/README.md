@@ -1,8 +1,32 @@
-# 07 — Protect the API with AuthPolicy
+# 06 — Protect the API with AuthPolicy
 
-**What you'll learn:** Use Kuadrant's AuthPolicy to enforce JWT-based authentication on your API using the Keycloak OIDC provider from Phase 06. Unauthenticated requests are rejected with HTTP 401.
+**What you'll learn:** Install Keycloak as an OIDC identity provider, then use Kuadrant's AuthPolicy to enforce JWT-based authentication on your API. Unauthenticated requests are rejected with HTTP 401.
 
-**Prerequisites:** Phases 00–06 completed (Gateway with TLS, echo app running, Keycloak realm with OIDC client and test user).
+**Prerequisites:** Phases 00–05 completed (Gateway with TLS, echo app running).
+
+## Step 0: Install Keycloak (OIDC Identity Provider)
+
+AuthPolicy validates JWTs issued by an OIDC provider. Run the setup script to deploy the Red Hat build of Keycloak with PostgreSQL, create an OIDC realm, client, and test user:
+
+```shell
+./06-auth-policy/setup-keycloak.sh
+```
+
+> **Re-run note:** If `keycloak-pgsql-data` PVC already exists from a previous run, either delete the PVC and secret first, or reuse the same `KEYCLOAK_DB_PASSWORD`. A new random password with an existing PVC causes realm import failures.
+
+The script applies the Keycloak manifests in `06-auth-policy/keycloak/` and waits for each component to become ready. When it finishes you'll see the OIDC discovery URL printed.
+
+### OIDC Configuration Reference
+
+
+| Parameter      | Value                                                                                                |
+| -------------- | ---------------------------------------------------------------------------------------------------- |
+| Issuer URL     | `https://keycloak.${CLUSTER_DOMAIN}/realms/connectivity-link-tutorial`                               |
+| Token endpoint | `https://keycloak.${CLUSTER_DOMAIN}/realms/connectivity-link-tutorial/protocol/openid-connect/token` |
+| JWKS URI       | `https://keycloak.${CLUSTER_DOMAIN}/realms/connectivity-link-tutorial/protocol/openid-connect/certs` |
+| Client ID      | `tutorial-app`                                                                                       |
+| Client secret  | `tutorial-app-secret`                                                                                |
+| Test user      | `testuser` / `testuser`                                                                              |
 
 ## How AuthPolicy Works
 
@@ -36,7 +60,7 @@ The AuthPolicy in this phase uses **JWT authentication**:
 The policy targets the `echo` HTTPRoute and configures JWT authentication against the Keycloak realm:
 
 ```yaml
-# 07-auth-policy/auth-policy.yaml
+# 06-auth-policy/auth-policy.yaml
 apiVersion: kuadrant.io/v1
 kind: AuthPolicy
 metadata:
@@ -63,7 +87,7 @@ Key points:
 
 ```shell
 source export-cluster-env.sh
-envsubst < 07-auth-policy/auth-policy.yaml | oc apply -f -
+envsubst < 06-auth-policy/auth-policy.yaml | oc apply -f -
 ```
 
 Wait for the policy to be accepted and enforced:
@@ -80,6 +104,10 @@ oc get authpolicy echo-auth -n tutorial-app -o jsonpath='{.status.conditions}' |
 ```
 
 > **Note:** Envoy may take up to 60 seconds to enforce the policy after the AuthPolicy shows `Enforced`. Wait before running the verification curls below.
+
+In the Connectivity Link UI Console you can inspect the Auth Policy:
+
+![Auth Policy in Console UI](../img/04-authpolicy.png)
 
 ## Step 3: Verify — Request Without Token (401)
 
@@ -137,4 +165,5 @@ With AuthPolicy enforced, the full request flow is:
 
 ---
 
-Next: [08 — RateLimitPolicy](../08-rate-limit-policy/)
+Previous: [05 — TLS Policy](../05-tls-policy/)
+Next: [07 — IP Restriction](../07-ip-restriction/)

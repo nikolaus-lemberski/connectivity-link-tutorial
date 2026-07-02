@@ -157,7 +157,7 @@ curl -sk -H "Authorization: Bearer $TOKEN" \
   "https://$THANOS_HOST/api/v1/query?query=kube_customresource_gateway_info" | python3 -m json.tool | head -20
 ```
 
-> **Tip:** If `kuadrant_hits` returns empty, generate some traffic first — send a few authenticated requests through the gateway as in sections 07 and 08. Metrics only appear after requests flow through the policy engine.
+> **Tip:** If `kuadrant_hits` returns empty, generate some traffic first — send a few authenticated requests through the gateway as in sections 06 and 08. Metrics only appear after requests flow through the policy engine.
 
 To see all available Connectivity Link metrics:
 

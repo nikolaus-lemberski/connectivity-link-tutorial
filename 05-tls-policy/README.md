@@ -169,4 +169,5 @@ echo | openssl s_client -connect echo.${CLUSTER_DOMAIN}:443 -servername echo.${C
 
 ---
 
-Next: [06 — Keycloak Setup](../06-keycloak/)
+Previous: [04 — Deploy Application](../04-app/)
+Next: [06 — AuthPolicy](../06-auth-policy/)

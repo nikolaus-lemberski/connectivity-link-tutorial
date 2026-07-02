@@ -35,12 +35,11 @@ source export-cluster-env.sh
 | 03 | [Create Gateway](./03-gateway/) | Gateway API resource (HTTP) |
 | 04 | [Deploy Application](./04-app/) | Sample REST service + HTTPRoute |
 | 05 | [TLS Policy](./05-tls-policy/) | Automate TLS certificates (HTTPS) |
-| 06 | [Keycloak Setup](./06-keycloak/) | Identity provider for OIDC |
-| 07 | [Auth Policy](./07-auth-policy/) | OIDC authentication via Keycloak |
+| 06 | [Auth Policy](./06-auth-policy/) | OIDC authentication via Keycloak |
+| 07 | [IP Restriction](./07-ip-restriction/) | Source IP denylisting via AuthPolicy |
 | 08 | [Rate Limit Policy](./08-rate-limit-policy/) | Request rate limiting |
 | 09 | [Observability](./09-observability/) | Metrics, Perses dashboards, tracing |
-| 10 | [IP Restriction (Bonus)](./10-ip-restriction/) | Source IP denylisting via AuthPolicy |
-| 11 | [Cleanup](./11-cleanup/) | Remove tutorial resources |
+| 10 | [Cleanup](./10-cleanup/) | Remove tutorial resources |
 
 ### Observability subsections
 

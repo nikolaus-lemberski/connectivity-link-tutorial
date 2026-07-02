@@ -1,4 +1,4 @@
-# 11 — Cleanup
+# 10 — Cleanup
 
 ## What you'll do
 
@@ -14,7 +14,7 @@ Remove all resources created by this tutorial from your OpenShift cluster.
 Run the cleanup script:
 
 ```shell
-./11-cleanup/cleanup.sh
+./10-cleanup/cleanup.sh
 ```
 
 The script will:
@@ -83,3 +83,7 @@ oc patch namespace tempo --type=json -p='[{"op":"replace","path":"/spec/finalize
 ```
 
 Re-run the cleanup script after manual fixes — it is safe to run more than once.
+
+---
+
+Previous: [09d — Access Logs](../09-observability/09d-access-logs/)
