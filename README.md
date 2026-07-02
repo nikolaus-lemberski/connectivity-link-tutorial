@@ -41,15 +41,6 @@ source export-cluster-env.sh
 | 09 | [Observability](./09-observability/) | Metrics, Perses dashboards, tracing |
 | 10 | [Cleanup](./10-cleanup/) | Remove tutorial resources |
 
-### Observability subsections
-
-| # | Section | Description |
-|---|---------|-------------|
-| 09a | [Metrics & Monitoring](./09-observability/09a-metrics-monitoring/) | User workload monitoring, Kuadrant metrics |
-| 09b | [Perses Dashboards](./09-observability/09b-dashboards/) | COO, Perses UI, dashboards |
-| 09c | [Tracing (optional)](./09-observability/09c-tracing/) | Tempo, OpenTelemetry, distributed tracing |
-| 09d | [Access Logs](./09-observability/09d-access-logs/) | Envoy access logs and correlation |
-
 ## Architecture
 
 ```
