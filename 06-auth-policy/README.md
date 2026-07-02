@@ -14,7 +14,7 @@ AuthPolicy validates JWTs issued by an OIDC provider. Run the setup script to de
 
 > **Re-run note:** If `keycloak-pgsql-data` PVC already exists from a previous run, either delete the PVC and secret first, or reuse the same `KEYCLOAK_DB_PASSWORD`. A new random password with an existing PVC causes realm import failures.
 
-The script applies the Keycloak manifests in `06-auth-policy/keycloak/` and waits for each component to become ready. When it finishes you'll see the OIDC discovery URL printed.
+The script applies the Keycloak manifests in `06-auth-policy/keycloak/` and waits for each component to become ready. When it finishes you'll see the OIDC discovery URL printed. If you prefer to install Keycloak step by step, follow the [manual installation guide](keycloak/README.md).
 
 ### OIDC Configuration Reference
 
