@@ -7,8 +7,7 @@ Hands-on tutorial for securing, protecting, and observing APIs on OpenShift usin
 - Install Red Hat Connectivity Link on OpenShift
 - Create a Gateway and expose a REST service via HTTPRoute
 - Secure traffic with **TLSPolicy** (automated certificate management)
-- Protect APIs with **AuthPolicy** (OIDC authentication via Keycloak)
-- Configure IP restrictions with **AuthPolicy**
+- Protect APIs and configure IP restrictions with **AuthPolicy** (OIDC authentication via Keycloak)
 - Rate-limit traffic with **RateLimitPolicy**
 - Set up **Observability** with Perses dashboards, metrics, and tracing
 
