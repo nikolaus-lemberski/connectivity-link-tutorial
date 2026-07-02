@@ -43,23 +43,6 @@ source export-cluster-env.sh
 | 09 | [Observability](./09-observability/) | Metrics, Perses dashboards, tracing |
 | 10 | [Cleanup](./10-cleanup/) | Remove tutorial resources |
 
-## Architecture
-
-```
-                    ┌─────────────────────────────────────────┐
-                    │            OpenShift Cluster            │
-                    │                                         │
-  Internet ──────▶  │  Gateway (TLSPolicy)                    │
-                    │     │                                   │
-                    │     ├── HTTPRoute (AuthPolicy,          │
-                    │     │          RateLimitPolicy)         │
-                    │     │                                   │
-                    │     └──▶ Service ──▶ REST App Pod       │
-                    │                                         │
-                    │  Prometheus ──▶ Perses Dashboards       │
-                    └─────────────────────────────────────────┘
-```
-
 ## References
 
 - [Red Hat Connectivity Link 1.3 Documentation](https://docs.redhat.com/en/documentation/red_hat_connectivity_link/1.3/)
