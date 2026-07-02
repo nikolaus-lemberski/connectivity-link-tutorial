@@ -49,12 +49,6 @@ source export-cluster-env.sh
 envsubst < 05-tls-policy/gateway.yaml | oc apply -f -
 ```
 
-The HTTPS listener will show as **not Programmed** initially — this is expected because the TLS secret does not exist yet:
-
-```bash
-oc get gateway api-gateway -n openshift-ingress
-```
-
 ## Step 2: Create the TLSPolicy
 
 The TLSPolicy targets the Gateway and references the `selfsigned-cluster-issuer` from Phase 02:
@@ -103,11 +97,9 @@ You should see a Certificate named `api-gateway-https` with `READY: True`. Verif
 oc get secret api-gateway-tls -n openshift-ingress
 ```
 
-The HTTPS listener on the Gateway should now be Programmed:
+In the Console UI you can inspect the TLSPolicy:
 
-```bash
-oc get gateway api-gateway -n openshift-ingress
-```
+![TLS Policy in Console UI](../img/03-tlspolicy.png)
 
 ## Step 4: Replace HTTP Route with TLS Passthrough Route
 
@@ -167,7 +159,7 @@ Inspect the certificate:
 echo | openssl s_client -connect echo.${CLUSTER_DOMAIN}:443 -servername echo.${CLUSTER_DOMAIN} 2>/dev/null | openssl x509 -noout -subject -issuer -dates
 ```
 
-> **Production note:** Replace `selfsigned-cluster-issuer` with an ACME ClusterIssuer (e.g., Let's Encrypt) for trusted certificates. See the [cert-manager ACME docs](https://cert-manager.io/docs/configuration/acme/).
+> **Production note:** Replace `selfsigned-cluster-issuer` with an ACME ClusterIssuer.
 
 ## Verify
 
