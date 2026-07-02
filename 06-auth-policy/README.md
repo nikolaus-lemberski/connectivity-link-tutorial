@@ -130,19 +130,15 @@ Expected: **HTTP 401 Unauthorized** — token is not a valid JWT.
 Obtain a token from Keycloak and send an authenticated request:
 
 ```bash
-export KEYCLOAK_HOST=$(oc get route tutorial-keycloak -n tutorial-keycloak -o jsonpath='{.spec.host}')
-
-export TOKEN=$(curl -sk -X POST "https://$KEYCLOAK_HOST/realms/connectivity-link-tutorial/protocol/openid-connect/token" \
-  -H "Content-Type: application/x-www-form-urlencoded" \
-  -d "grant_type=password&client_id=tutorial-app&client_secret=tutorial-app-secret&username=testuser&password=testuser" \
-  | python3 -c "import sys,json; print(json.load(sys.stdin)['access_token'])")
+source export-cluster-env.sh
+export TOKEN=$(get_token)
 
 curl -sk -H "Authorization: Bearer $TOKEN" "https://echo.$CLUSTER_DOMAIN/"
 ```
 
 Expected: **HTTP 200** with the echo service's JSON response, including the `Authorization` header in the echoed request headers.
 
-> **Note:** Tokens expire after 5 minutes (300 seconds) by default. Re-run the token request if you get a 401 with a previously valid token.
+> **Note:** Tokens expire after 5 minutes (300 seconds) by default. Re-run `export TOKEN=$(get_token)` if you get a 401 with a previously valid token.
 
 ## How It All Fits Together
 

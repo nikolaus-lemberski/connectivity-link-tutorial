@@ -242,12 +242,11 @@ oc get persesdashboards -n kuadrant-system
 > **Tip:** If the dashboard shows no data, generate traffic by sending requests through the gateway:
 >
 > ```bash
-> TOKEN=$(curl -sk "https://keycloak.${CLUSTER_DOMAIN}/realms/connectivity-link-tutorial/protocol/openid-connect/token" \
->   -d "grant_type=password&client_id=tutorial-app&client_secret=tutorial-app-secret&username=testuser&password=testuser" \
->   | python3 -c "import sys,json; print(json.load(sys.stdin)['access_token'])")
+> source export-cluster-env.sh
+> export TOKEN=$(get_token)
 >
 > for i in $(seq 1 10); do
->   curl -sk "https://echo.${CLUSTER_DOMAIN}/" -H "Authorization: Bearer $TOKEN"
+>   curl -sk "https://echo.$CLUSTER_DOMAIN/" -H "Authorization: Bearer $TOKEN"
 > done
 > ```
 >
