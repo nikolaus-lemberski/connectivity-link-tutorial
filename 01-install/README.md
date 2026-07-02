@@ -7,6 +7,7 @@ Install the Red Hat Connectivity Link Operator and create the Kuadrant operand.
 - Create the `kuadrant-system` namespace
 - Install the RHCL Operator via OLM
 - Create the Kuadrant custom resource to instantiate Connectivity Link
+- Enable the Kuadrant Console plugin for the OpenShift web console
 
 ## Prerequisites
 
@@ -170,6 +171,22 @@ oc wait kuadrant/kuadrant --for="condition=Ready=true" -n kuadrant-system --time
 > ```bash
 > oc delete pod -n kuadrant-system -l app=kuadrant -l app.kubernetes.io/component=manager
 > ```
+
+### 7. Enable the Kuadrant Console plugin
+
+The RHCL Operator registers a `ConsolePlugin` resource (`kuadrant-console-plugin`) automatically. Enable it on the OpenShift web console:
+
+```bash
+oc patch consoles.operator.openshift.io cluster --type=merge --patch '{"spec":{"plugins":["kuadrant-console-plugin"]}}'
+```
+
+Wait for the console plugin rollout to complete:
+
+```bash
+oc wait consoles.operator.openshift.io cluster --for=jsonpath='{.status.conditions[?(@.type=="DeploymentAvailable")].status}'=True --timeout=120s
+```
+
+> **Note:** After enabling the plugin, refresh the OpenShift web console in your browser. A new **Connectivity Link** menu item will appear in the navigation sidebar.
 
 ## Verify
 
