@@ -21,7 +21,7 @@ spec:
           rego: "allow = false"
         when:
           - predicate: >-
-              request.headers['x-forwarded-for'].startsWith('BLOCKED_IP')
+              request.headers['x-forwarded-for'].startsWith('$CLIENT_IP')
     response:
       unauthorized:
         headers:

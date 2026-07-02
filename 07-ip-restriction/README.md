@@ -37,10 +37,14 @@ Send an authenticated request to the echo service and look at the response. The 
 source export-cluster-env.sh
 export TOKEN=$(get_token)
 
-curl -sk -H "Authorization: Bearer $TOKEN" "https://echo.$CLUSTER_DOMAIN/" | python3 -m json.tool
+RESPONSE=$(curl -sk -H "Authorization: Bearer $TOKEN" "https://echo.$CLUSTER_DOMAIN/")
+echo "$RESPONSE" | python3 -m json.tool
+
+export CLIENT_IP=$(echo "$RESPONSE" | python3 -c "import sys,json; print(json.load(sys.stdin)['headers']['x-forwarded-for'].split(',')[0].strip())")
+echo "CLIENT_IP=$CLIENT_IP"
 ```
 
-Find the `x-forwarded-for` value in the response and note the first IP — for example `10.128.2.45`. You will use this IP in the next step.
+The first IP in `x-forwarded-for` is exported as `CLIENT_IP` for use in the next step.
 
 ## Step 2: Review the IP Restriction AuthPolicy
 
@@ -69,7 +73,7 @@ spec:
           rego: "allow = false"
         when:
           - predicate: >-
-              request.headers['x-forwarded-for'].startsWith('BLOCKED_IP')
+              request.headers['x-forwarded-for'].startsWith('$CLIENT_IP')
     response:
       unauthorized:
         headers:
@@ -83,21 +87,19 @@ Key points:
 - **authentication** is unchanged — JWT validation still runs first
 - **authorization.ip-denylist** is an OPA rule that returns `allow = false`
 - **when** controls when the deny rule fires: only when the `x-forwarded-for` header starts with the blocked IP
-- `BLOCKED_IP` is a placeholder you replace with the actual IP from Step 1 before applying
+- `$CLIENT_IP` is substituted from the environment variable you exported in Step 1
 
 ## Step 3: Apply the Policy (Verify 403)
 
-Replace `BLOCKED_IP` with the IP you discovered in Step 1 and apply:
+Apply the policy using the `CLIENT_IP` from Step 1:
 
 ```shell
 source export-cluster-env.sh
 
-sed 's/BLOCKED_IP/10.128.2.45/' 07-ip-restriction/auth-policy-ip-restriction.yaml \
-  | envsubst \
-  | oc apply -f -
+envsubst < 07-ip-restriction/auth-policy-ip-restriction.yaml | oc apply -f -
 ```
 
-> Replace `10.128.2.45` in the `sed` command with the actual IP from your Step 1 output.
+> Run Step 1 in the same shell session so `CLIENT_IP` is set, or re-export it before applying.
 
 Wait for the policy to be enforced:
 
