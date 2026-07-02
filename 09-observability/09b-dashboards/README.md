@@ -240,6 +240,8 @@ oc get persesdashboards -n kuadrant-system
 3. Select the **kuadrant-system** project from the namespace dropdown
 4. Click **Connectivity Link Overview**
 
+![Connectivity Link Overview in Perses](../../img/06-perses.png)
+
 > **Tip:** If the dashboard shows no data, generate traffic by sending requests through the gateway:
 >
 > ```bash
@@ -252,8 +254,6 @@ oc get persesdashboards -n kuadrant-system
 > ```
 >
 > Wait 1–2 minutes for Prometheus to scrape the new metrics, then refresh the dashboard.
-
-![Connectivity Link Overview in Perses](../../img/06-perses.png)
 
 ## Customising the Dashboard
 
