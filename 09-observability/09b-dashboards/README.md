@@ -72,8 +72,9 @@ spec:
 Wait for the operator to install:
 
 ```shell
-oc wait csv -n openshift-cluster-observability-operator \
-  -l operators.coreos.com/cluster-observability-operator \
+CSV=$(oc get subscription cluster-observability-operator \
+  -n openshift-cluster-observability-operator -o jsonpath='{.status.installedCSV}')
+oc wait csv "$CSV" -n openshift-cluster-observability-operator \
   --for=jsonpath='{.status.phase}'=Succeeded --timeout=300s
 
 oc get crds | grep perses
@@ -251,6 +252,8 @@ oc get persesdashboards -n kuadrant-system
 > ```
 >
 > Wait 1–2 minutes for Prometheus to scrape the new metrics, then refresh the dashboard.
+
+![Connectivity Link Overview in Perses](../../img/06-perses.png)
 
 ## Customising the Dashboard
 
