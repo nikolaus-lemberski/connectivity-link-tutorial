@@ -8,6 +8,7 @@ Hands-on tutorial for securing, protecting, and observing APIs on OpenShift usin
 - Create a Gateway and expose a REST service via HTTPRoute
 - Secure traffic with **TLSPolicy** (automated certificate management)
 - Protect APIs with **AuthPolicy** (OIDC authentication via Keycloak)
+- Configure IP restrictions with **AuthPolicy**
 - Rate-limit traffic with **RateLimitPolicy**
 - Set up **Observability** with Perses dashboards, metrics, and tracing
 
