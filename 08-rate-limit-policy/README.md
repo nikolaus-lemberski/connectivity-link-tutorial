@@ -140,6 +140,12 @@ With both AuthPolicy and RateLimitPolicy enforced, the request flow is:
 
 > **Note:** Without a valid JWT, the request is rejected at step 3 with 401 — it never reaches the rate limiter. Rate limits only apply to authenticated traffic.
 
+## Policy Topology
+
+As we have reached the end of our policies sections, it's time to have a final look into our Connectivity Link Console UI and check out the Policy Topology view.
+
+![Policy Topology in Console UI](../img/05-policies.png)
+
 ## Verify
 
 - [ ] `oc get ratelimitpolicy echo-rate-limit -n tutorial-app` shows `Accepted` and `Enforced`
