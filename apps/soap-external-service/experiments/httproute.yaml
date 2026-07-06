@@ -1,0 +1,27 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: soap-external
+  namespace: soap-experiment
+  labels:
+    app.kubernetes.io/part-of: connectivity-link-tutorial
+spec:
+  parentRefs:
+    - name: api-gateway
+      namespace: openshift-ingress
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /soap
+      filters:
+        # The remote OpenShift Route selects its backend by Host header, so it
+        # must be rewritten to match the external hostname registered above.
+        - type: URLRewrite
+          urlRewrite:
+            hostname: ${SOAP_EXTERNAL_HOST}
+      backendRefs:
+        - group: networking.istio.io
+          kind: Hostname
+          name: ${SOAP_EXTERNAL_HOST}
+          port: 80

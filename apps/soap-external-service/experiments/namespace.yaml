@@ -1,0 +1,6 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: soap-experiment
+  labels:
+    app.kubernetes.io/part-of: connectivity-link-tutorial

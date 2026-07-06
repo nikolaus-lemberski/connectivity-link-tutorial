@@ -1,0 +1,18 @@
+apiVersion: networking.istio.io/v1
+kind: ServiceEntry
+metadata:
+  name: soap-external
+  namespace: soap-experiment
+  labels:
+    app.kubernetes.io/part-of: connectivity-link-tutorial
+spec:
+  # Registers the externally-hosted SOAP service in Istio's service registry
+  # so Gateway API HTTPRoutes can reference it as a backend.
+  hosts:
+    - ${SOAP_EXTERNAL_HOST}
+  location: MESH_EXTERNAL
+  resolution: DNS
+  ports:
+    - number: 80
+      name: http
+      protocol: HTTP

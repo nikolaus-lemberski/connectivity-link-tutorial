@@ -62,7 +62,7 @@ This sets `CLUSTER_DOMAIN` and `KEYCLOAK_HOST` for all subsequent sections.
 
 If you ran the tutorial before on the same cluster:
 
-- Use [10 — Cleanup](../10-cleanup/) before starting again, or delete leftover PVCs (especially Keycloak PostgreSQL) manually.
+- Use [11 — Cleanup](../11-cleanup/) before starting again, or delete leftover PVCs (especially Keycloak PostgreSQL) manually.
 - If Keycloak PostgreSQL already exists in `tutorial-keycloak`, reuse the same `KEYCLOAK_DB_PASSWORD` or delete the PVC before re-applying `06-auth-policy/keycloak/postgres.yaml`.
 - The tutorial deploys its own Keycloak in the `tutorial-keycloak` namespace and does **not** modify the `keycloak` namespace or `sso.${CLUSTER_DOMAIN}` hostname used for OpenShift console login.
 

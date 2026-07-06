@@ -1,0 +1,16 @@
+apiVersion: networking.istio.io/v1
+kind: ServiceEntry
+metadata:
+  name: soap-external
+  namespace: soap-external
+  labels:
+    app.kubernetes.io/part-of: connectivity-link-tutorial
+spec:
+  hosts:
+    - ${SOAP_EXTERNAL_HOST}
+  location: MESH_EXTERNAL
+  resolution: DNS
+  ports:
+    - number: 80
+      name: http
+      protocol: HTTP

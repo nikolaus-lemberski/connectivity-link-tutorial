@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: soap-external
+  labels:
+    app.kubernetes.io/part-of: connectivity-link-tutorial
+    shared-gateway-access: "true"

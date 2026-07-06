@@ -1,0 +1,16 @@
+# Build
+FROM --platform=linux/amd64 registry.access.redhat.com/ubi10/openjdk-25 as builder
+
+COPY pom.xml .
+COPY src src
+
+RUN mvn -B package
+
+# Run
+FROM --platform=linux/amd64 registry.access.redhat.com/ubi10/openjdk-25-runtime
+
+COPY --from=builder /home/default/target/soap-example-1.0.0-SNAPSHOT-runner.jar .
+
+EXPOSE 8080
+
+ENTRYPOINT ["java", "-jar", "soap-example-1.0.0-SNAPSHOT-runner.jar"]

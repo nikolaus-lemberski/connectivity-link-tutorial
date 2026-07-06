@@ -1,0 +1,16 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: soap-external
+  namespace: openshift-ingress
+  labels:
+    app.kubernetes.io/part-of: connectivity-link-tutorial
+spec:
+  host: soap-external.${CLUSTER_DOMAIN}
+  to:
+    kind: Service
+    name: api-gateway-openshift-default
+    weight: 100
+  port:
+    targetPort: http
+  wildcardPolicy: None

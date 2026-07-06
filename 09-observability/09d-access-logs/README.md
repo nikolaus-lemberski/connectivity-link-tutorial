@@ -226,4 +226,4 @@ This is the standard observability correlation pattern: **logs** give you the in
 
 ---
 
-Next: [10 — Cleanup](../../10-cleanup/)
+Next: [10 — External Services](../../10-external-services/)

@@ -1,0 +1,16 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: soap-example
+  namespace: openshift-ingress
+  labels:
+    app.kubernetes.io/part-of: soap-example
+spec:
+  host: soap-example.${CLUSTER_DOMAIN}
+  to:
+    kind: Service
+    name: api-gateway-openshift-default
+    weight: 100
+  port:
+    targetPort: http
+  wildcardPolicy: None

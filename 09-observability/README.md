@@ -53,4 +53,4 @@ After completing all subsections:
 
 ---
 
-Next: [09a — Metrics & Monitoring](./09a-metrics-monitoring/) | After observability: [10 — Cleanup](../10-cleanup/)
+Next: [09a — Metrics & Monitoring](./09a-metrics-monitoring/) | After observability: [10 — External Services](../10-external-services/)

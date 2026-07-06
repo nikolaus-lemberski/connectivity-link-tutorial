@@ -1,0 +1,25 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: soap-external
+  namespace: soap-external
+  labels:
+    app.kubernetes.io/part-of: connectivity-link-tutorial
+spec:
+  parentRefs:
+    - name: api-gateway
+      namespace: openshift-ingress
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /soap
+      filters:
+        - type: URLRewrite
+          urlRewrite:
+            hostname: ${SOAP_EXTERNAL_HOST}
+      backendRefs:
+        - group: networking.istio.io
+          kind: Hostname
+          name: ${SOAP_EXTERNAL_HOST}
+          port: 80

@@ -1,11 +1,11 @@
-# 10 — Cleanup
+# 11 — Cleanup
 
 Remove all tutorial resources from your OpenShift cluster.
 
 ## Run the cleanup script
 
 ```shell
-./10-cleanup/cleanup.sh
+./11-cleanup/cleanup.sh
 ```
 
 The script shows a warning, asks for confirmation, then removes resources in reverse order (observability → policies → app → gateway → operators). It is safe to run more than once.
