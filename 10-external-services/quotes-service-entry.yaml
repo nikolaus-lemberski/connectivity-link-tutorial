@@ -1,0 +1,16 @@
+apiVersion: networking.istio.io/v1
+kind: ServiceEntry
+metadata:
+  name: dummyjson-external
+  namespace: quotes-external
+  labels:
+    app.kubernetes.io/part-of: connectivity-link-tutorial
+spec:
+  hosts:
+    - dummyjson.com
+  location: MESH_EXTERNAL
+  resolution: DNS
+  ports:
+    - number: 443
+      name: https
+      protocol: HTTPS

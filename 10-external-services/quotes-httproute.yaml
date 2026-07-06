@@ -1,0 +1,25 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: quotes-external
+  namespace: quotes-external
+  labels:
+    app.kubernetes.io/part-of: connectivity-link-tutorial
+spec:
+  parentRefs:
+    - name: api-gateway
+      namespace: openshift-ingress
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /quotes
+      filters:
+        - type: URLRewrite
+          urlRewrite:
+            hostname: dummyjson.com
+      backendRefs:
+        - group: networking.istio.io
+          kind: Hostname
+          name: dummyjson.com
+          port: 443

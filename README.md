@@ -10,7 +10,7 @@ Hands-on tutorial for securing, protecting, and observing APIs on OpenShift usin
 - Protect APIs and configure IP restrictions with **AuthPolicy** (OIDC authentication via Keycloak)
 - Rate-limit traffic with **RateLimitPolicy**
 - Set up **Observability** with Perses dashboards, metrics, and tracing
-- Connect **external services** from a second cluster through the Gateway
+- Connect **external services** (public APIs and remote clusters) through the Gateway
 
 ![OpenShift Connectivity Link Console UI](./img/05-policies.png)
 
@@ -42,7 +42,7 @@ source export-cluster-env.sh
 | 07 | [IP Restriction](./07-ip-restriction/) | Source IP denylisting via AuthPolicy |
 | 08 | [Rate Limit Policy](./08-rate-limit-policy/) | Request rate limiting |
 | 09 | [Observability](./09-observability/) | Metrics, Perses dashboards, tracing |
-| 10 | [External Services](./10-external-services/) | Route to an external SOAP service on a second cluster |
+| 10 | [External Services](./10-external-services/) | Route to external REST and SOAP services through the Gateway |
 | 11 | [Cleanup](./11-cleanup/) | Remove tutorial resources |
 
 ## References
