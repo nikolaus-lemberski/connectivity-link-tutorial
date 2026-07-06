@@ -59,7 +59,7 @@ oc apply -f 10-external-services/quotes-httproute.yaml
 ### Step 5 — Expose via OpenShift Route
 
 > [!NOTE]
-> Remember: we just use OpenShift Route as a workaround in our tutorial to simplify our environment. In a production environment we would use **LoadBalancer** or the Connectivity Link **DNSPolicy**.
+> Remember: We just use OpenShift Route as a workaround in our tutorial to simplify the requirements for our environment. In a production cluster we would use **LoadBalancer** or the Connectivity Link **DNSPolicy**.
 
 Create an OpenShift Route so the external service is reachable through the Gateway:
 
