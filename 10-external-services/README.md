@@ -12,7 +12,7 @@ Connectivity Link can proxy requests to services that live outside the local clu
 There are also other options, for example Red Hat Service Interconnect. The right solution depends on the use case and technologies involved.
 
 > [!NOTE] 
-- A `Service` of `type: ExternalName` as an `HTTPRoute` `backendRef` is explicitly **not supported** by Gateway API implementations (including Istio). Instead, we use Istio's `ServiceEntry` + `Hostname` backendRef.
+> A `Service` of `type: ExternalName` as an `HTTPRoute` `backendRef` is explicitly **not supported** by Gateway API implementations (including Istio). Instead, we use Istio's `ServiceEntry` + `Hostname` backendRef.
 
 ## Prerequisites
 
