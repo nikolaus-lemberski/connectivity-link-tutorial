@@ -2,7 +2,7 @@
 
 **What you'll learn:** Route traffic from your Connectivity Link gateway to external services outside the cluster, using Istio `ServiceEntry` and Gateway API `HTTPRoute`.
 
-There are also other options for that use case, for example Red Hat Service Interconnect. The right solution depends on the environment and what you want to achieve.
+There are also other options for that use case like **Red Hat Service Interconnect**. The right solution depends on the environment and what you want to achieve.
 
 ## Overview
 
