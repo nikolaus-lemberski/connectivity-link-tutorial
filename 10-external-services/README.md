@@ -9,7 +9,10 @@ Connectivity Link can proxy requests to services that live outside the local clu
 1. **Part 1** — Route to a public REST API (`dummyjson.com`) from the same cluster. No additional infrastructure required.
 2. **Part 2** — Route to a SOAP service running on a separate OpenShift cluster (Cluster B).
 
-> **Note:** A `Service` of `type: ExternalName` as an `HTTPRoute` `backendRef` is explicitly **not supported** by Gateway API implementations (including Istio). Instead, we use Istio's `ServiceEntry` + `Hostname` backendRef.
+There are also other options, for example Red Hat Service Interconnect. The right solution depends on the use case and technologies involved.
+
+> [!NOTE] 
+- A `Service` of `type: ExternalName` as an `HTTPRoute` `backendRef` is explicitly **not supported** by Gateway API implementations (including Istio). Instead, we use Istio's `ServiceEntry` + `Hostname` backendRef.
 
 ## Prerequisites
 
