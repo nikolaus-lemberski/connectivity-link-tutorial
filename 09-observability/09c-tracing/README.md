@@ -84,7 +84,12 @@ oc wait --for=jsonpath='{.status.state}'=AtLatestKnown \
   subscription/opentelemetry-product -n openshift-opentelemetry-operator --timeout=180s
 ```
 
+The subscription reaching `AtLatestKnown` only means the install plan was created — the operator pod (and its admission webhook) may not be ready yet. Wait for the CSV to succeed before creating any `OpenTelemetryCollector` resources, otherwise `oc apply` fails with a webhook connection error:
 
+```bash
+CSV=$(oc get subscription opentelemetry-product -n openshift-opentelemetry-operator -o jsonpath='{.status.installedCSV}')
+oc wait csv/"$CSV" -n openshift-opentelemetry-operator --for=jsonpath='{.status.phase}'=Succeeded --timeout=180s
+```
 
 ## Step 2: Deploy the OpenTelemetry Collector
 

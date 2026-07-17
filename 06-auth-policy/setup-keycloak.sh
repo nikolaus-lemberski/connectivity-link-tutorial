@@ -16,6 +16,11 @@ oc apply -f 06-auth-policy/keycloak/namespace.yaml
 echo "==> Installing Red Hat build of Keycloak Operator (stable-v26.4)"
 oc apply -f 06-auth-policy/keycloak/subscription.yaml
 
+echo "==> Waiting for Keycloak Operator CSV to appear"
+until oc get csv -n tutorial-keycloak -l operators.coreos.com/rhbk-operator.tutorial-keycloak 2>/dev/null | grep -q rhbk-operator; do
+  sleep 3
+done
+
 echo "==> Waiting for Keycloak Operator CSV to succeed"
 oc wait csv -n tutorial-keycloak \
   -l operators.coreos.com/rhbk-operator.tutorial-keycloak \

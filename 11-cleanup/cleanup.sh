@@ -106,8 +106,6 @@ delete_csv_for_subscription() {
   if [[ -n "$csv" && "$csv" != "<no value>" ]]; then
     delete_and_wait csv "$csv" "$namespace" 120
   fi
-
-  delete_all_and_wait csv "$namespace" 60
 }
 
 force_cleanup_namespace() {

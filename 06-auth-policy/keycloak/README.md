@@ -43,9 +43,10 @@ The operator is installed from the `redhat-operators` catalog on the `stable-v26
 oc apply -f 06-auth-policy/keycloak/subscription.yaml
 ```
 
-Wait for the operator to install:
+Wait for the operator to install. The CSV takes a few seconds to appear after applying the Subscription, so poll for it before waiting on its phase:
 
 ```shell
+until oc get csv -n tutorial-keycloak -l operators.coreos.com/rhbk-operator.tutorial-keycloak 2>/dev/null | grep -q rhbk-operator; do sleep 3; done
 oc wait csv -n tutorial-keycloak -l operators.coreos.com/rhbk-operator.tutorial-keycloak --for=jsonpath='{.status.phase}'=Succeeded --timeout=300s
 ```
 
