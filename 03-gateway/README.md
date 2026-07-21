@@ -84,6 +84,26 @@ done
 
 A `404` from Envoy confirms the gateway is receiving traffic.
 
+## Step 3 — Scale the Gateway for resilience
+
+The gateway controller creates a single Envoy pod by default. Scale the deployment to at least two replicas so the gateway stays available during node failures and rolling upgrades:
+
+```shell
+oc scale deployment api-gateway-openshift-default -n openshift-ingress --replicas=2
+```
+
+Verify both pods are running:
+
+```shell
+oc get pods -n openshift-ingress -l gateway.networking.k8s.io/gateway-name=api-gateway
+# NAME                                                READY   STATUS    RESTARTS   AGE
+# api-gateway-openshift-default-...                   1/1     Running   0          ...
+# api-gateway-openshift-default-...                   1/1     Running   0          ...
+```
+
+> [!TIP]
+> In production, consider adding a `PodDisruptionBudget` and a `HorizontalPodAutoscaler` to keep the gateway responsive under variable load. See the [OpenShift HPA documentation](https://docs.openshift.com/container-platform/4.19/nodes/pods/nodes-pods-autoscaling.html) for details.
+
 ## Manifests
 
 | File | Resource | Purpose |
