@@ -61,7 +61,7 @@ oc get httproute -n tutorial-app
 Check the route status:
 
 ```bash
-oc get httproute echo -n tutorial-app -o jsonpath='{.status.parents[0].conditions}' | python3 -m json.tool
+oc get httproute echo -n tutorial-app -o jsonpath='{.status.parents[0].conditions}' | jq .
 # Should show Accepted: True, ResolvedRefs: True
 ```
 
@@ -70,7 +70,7 @@ oc get httproute echo -n tutorial-app -o jsonpath='{.status.parents[0].condition
 Send a request through the Gateway:
 
 ```bash
-curl -s http://echo.$CLUSTER_DOMAIN/ | python3 -m json.tool
+curl -s http://echo.$CLUSTER_DOMAIN/ | jq .
 ```
 
 You should see a JSON response containing request details:
@@ -103,7 +103,7 @@ Test with a POST request:
 ```bash
 curl -s -X POST -H "Content-Type: application/json" \
     -d '{"message":"hello from tutorial"}' \
-    http://echo.$CLUSTER_DOMAIN/api/test | python3 -m json.tool
+    http://echo.$CLUSTER_DOMAIN/api/test | jq .
 ```
 ## Step 5 — Inspect Gateway endpoints via Envoy EDS
 
@@ -116,22 +116,22 @@ oc port-forward -n openshift-ingress deploy/api-gateway-openshift-default 15000:
 PF_PID=$!
 sleep 2
 
-curl -s 'http://localhost:15000/config_dump?include_eds' | python3 -c "
-import json, sys
-data = json.load(sys.stdin)
-for config in data.get('configs', []):
-    if 'EndpointsConfigDump' in config.get('@type', ''):
-        for ep in config.get('dynamic_endpoint_configs', []):
-            ec = ep.get('endpoint_config', {})
-            cn = ec.get('cluster_name', '')
-            for endpoint in ec.get('endpoints', []):
-                for lb in endpoint.get('lb_endpoints', []):
-                    addr = lb['endpoint']['address']['socket_address']
-                    print(f\"{cn} {addr['address']}:{addr['port_value']}\")
-" | grep echo
+curl -s 'http://localhost:15000/config_dump?include_eds' | jq -r '
+  .configs[]
+  | select(."@type" | contains("EndpointsConfigDump"))
+  | .dynamic_endpoint_configs[]
+  | .endpoint_config as $ec
+  | $ec.cluster_name as $cn
+  | ($ec.endpoints // [])[]
+  | .lb_endpoints[]
+  | .endpoint.address.socket_address
+  | "\($cn) \(.address):\(.port_value)"
+' | grep echo
 
 kill $PF_PID 2>/dev/null
 ```
+
+> **Note:** Some EDS entries have no endpoints yet (`endpoints: null`). The `// []` fallback skips those clusters so `jq` does not abort before `grep echo` runs.
 
 You should see the echo service endpoint registered with Envoy:
 
@@ -155,19 +155,17 @@ oc port-forward -n openshift-ingress deploy/api-gateway-openshift-default 15000:
 PF_PID=$!
 sleep 2
 
-curl -s 'http://localhost:15000/config_dump?include_eds' | python3 -c "
-import json, sys
-data = json.load(sys.stdin)
-for config in data.get('configs', []):
-    if 'EndpointsConfigDump' in config.get('@type', ''):
-        for ep in config.get('dynamic_endpoint_configs', []):
-            ec = ep.get('endpoint_config', {})
-            cn = ec.get('cluster_name', '')
-            for endpoint in ec.get('endpoints', []):
-                for lb in endpoint.get('lb_endpoints', []):
-                    addr = lb['endpoint']['address']['socket_address']
-                    print(f\"{cn} {addr['address']}:{addr['port_value']}\")
-" | grep echo
+curl -s 'http://localhost:15000/config_dump?include_eds' | jq -r '
+  .configs[]
+  | select(."@type" | contains("EndpointsConfigDump"))
+  | .dynamic_endpoint_configs[]
+  | .endpoint_config as $ec
+  | $ec.cluster_name as $cn
+  | ($ec.endpoints // [])[]
+  | .lb_endpoints[]
+  | .endpoint.address.socket_address
+  | "\($cn) \(.address):\(.port_value)"
+' | grep echo
 
 kill $PF_PID 2>/dev/null
 ```

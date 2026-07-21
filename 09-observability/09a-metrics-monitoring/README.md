@@ -144,7 +144,7 @@ TOKEN=$(oc whoami -t)
 THANOS_HOST=$(oc -n openshift-monitoring get route thanos-querier -o jsonpath='{.status.ingress[0].host}')
 
 curl -sk -H "Authorization: Bearer $TOKEN" \
-  "https://$THANOS_HOST/api/v1/query?query=kuadrant_hits" | python3 -m json.tool | head -20
+  "https://$THANOS_HOST/api/v1/query?query=kuadrant_hits" | jq . | head -20
 ```
 
 You should see results with labels pointing to the gateway pod in `openshift-ingress`.
@@ -155,7 +155,7 @@ You can also check Gateway API state metrics:
 
 ```bash
 curl -sk -H "Authorization: Bearer $TOKEN" \
-  "https://$THANOS_HOST/api/v1/query?query=kube_customresource_gateway_info" | python3 -m json.tool | head -20
+  "https://$THANOS_HOST/api/v1/query?query=kube_customresource_gateway_info" | jq . | head -20
 ```
 
 > **Tip:** If `kuadrant_hits` returns empty, generate some traffic first — send a few authenticated requests through the gateway as in sections 06 and 08. Metrics only appear after requests flow through the policy engine.
@@ -164,13 +164,9 @@ To see all available Connectivity Link metrics:
 
 ```bash
 curl -sk -H "Authorization: Bearer $TOKEN" \
-  "https://$THANOS_HOST/api/v1/label/__name__/values" | python3 -c "
-import sys, json
-names = json.load(sys.stdin).get('data', [])
-for n in sorted(names):
-    if any(k in n.lower() for k in ['kuadrant', 'limitador', 'authorino', 'kube_customresource_gateway']):
-        print(n)
-"
+  "https://$THANOS_HOST/api/v1/label/__name__/values" \
+  | jq -r '.data[] | select(test("kuadrant|limitador|authorino|kube_customresource_gateway"; "i"))' \
+  | sort
 ```
 
 ## What Metrics Are Available?

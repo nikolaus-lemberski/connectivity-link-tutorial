@@ -70,7 +70,7 @@ oc get ratelimitpolicy echo-rate-limit -n tutorial-app
 Check the status conditions:
 
 ```bash
-oc get ratelimitpolicy echo-rate-limit -n tutorial-app -o jsonpath='{.status.conditions}' | python3 -m json.tool
+oc get ratelimitpolicy echo-rate-limit -n tutorial-app -o jsonpath='{.status.conditions}' | jq .
 # Accepted: True, Enforced: True
 ```
 

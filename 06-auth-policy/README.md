@@ -99,7 +99,7 @@ oc get authpolicy echo-auth -n tutorial-app
 Both conditions should be `True`:
 
 ```shell
-oc get authpolicy echo-auth -n tutorial-app -o jsonpath='{.status.conditions}' | python3 -m json.tool
+oc get authpolicy echo-auth -n tutorial-app -o jsonpath='{.status.conditions}' | jq .
 # Accepted: True, Enforced: True
 ```
 

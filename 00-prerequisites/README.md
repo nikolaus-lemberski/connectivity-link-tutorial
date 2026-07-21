@@ -10,7 +10,7 @@ Before starting this tutorial, ensure you have the following in place.
 | Cluster access | `cluster-admin` privileges |
 | `oc` CLI | Installed and logged in to the cluster |
 | `envsubst` | GNU gettext (`brew install gettext` on macOS) |
-| `python3` | Used in verification steps |
+| `jq` | Used in verification steps (`brew install jq` on macOS) |
 | Red Hat subscription | Includes Red Hat Connectivity Link entitlement |
 | cert-manager Operator | cert-manager Operator for Red Hat OpenShift 1.18+ installed |
 

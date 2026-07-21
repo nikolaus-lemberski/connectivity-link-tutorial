@@ -191,15 +191,10 @@ THANOS_HOST=$(oc -n openshift-monitoring get route thanos-querier -o jsonpath='{
 curl -sk -H "Authorization: Bearer $TOKEN_OC" \
   "https://$THANOS_HOST/api/v1/query" \
   --data-urlencode 'query=sum by (response_code) (increase(istio_requests_total{destination_service="echo.tutorial-app.svc.cluster.local"}[5m]))' \
-  | python3 -c "
-import sys, json
-data = json.load(sys.stdin)
-for r in data.get('data', {}).get('result', []):
-    code = r['metric'].get('response_code', '?')
-    val = r['value'][1]
-    print(f'  HTTP {code}: {val} requests')
-"
+  | jq -r '.data.result[] | "  HTTP \(.metric.response_code // "?"): \(.value[1]) requests"'
 ```
+
+> **Note:** The `increase(...[5m])` range query needs at least two Prometheus scrapes in the window (typically 2–3 minutes after user workload monitoring is enabled and traffic has flowed through the gateway). If the query returns no rows, wait a minute, send a few more requests from Step 3, and try again.
 
 You should see counts for `200`, `401`, and `429` — matching the three scenarios you generated.
 

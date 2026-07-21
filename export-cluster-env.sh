@@ -16,5 +16,5 @@ get_token() {
     -d "client_secret=tutorial-app-secret" \
     -d "username=testuser" \
     -d "password=testuser" \
-    | python3 -c "import sys,json; print(json.load(sys.stdin)['access_token'])"
+    | jq -r '.access_token'
 }

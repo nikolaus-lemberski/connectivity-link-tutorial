@@ -38,9 +38,9 @@ source export-cluster-env.sh
 export TOKEN=$(get_token)
 
 RESPONSE=$(curl -sk -H "Authorization: Bearer $TOKEN" "https://echo.$CLUSTER_DOMAIN/")
-echo "$RESPONSE" | python3 -m json.tool
+echo "$RESPONSE" | jq .
 
-export CLIENT_IP=$(echo "$RESPONSE" | python3 -c "import sys,json; print(json.load(sys.stdin)['headers']['x-forwarded-for'].split(',')[0].strip())")
+export CLIENT_IP=$(echo "$RESPONSE" | jq -r '.headers["x-forwarded-for"] | split(",")[0] | ltrimstr(" ")')
 echo "CLIENT_IP=$CLIENT_IP"
 ```
 
@@ -104,7 +104,7 @@ envsubst < 07-ip-restriction/auth-policy-ip-restriction.yaml | oc apply -f -
 Wait for the policy to be enforced:
 
 ```shell
-oc get authpolicy echo-auth -n tutorial-app -o jsonpath='{.status.conditions}' | python3 -m json.tool
+oc get authpolicy echo-auth -n tutorial-app -o jsonpath='{.status.conditions}' | jq .
 # Accepted: True, Enforced: True
 ```
 
@@ -142,7 +142,7 @@ envsubst < 06-auth-policy/auth-policy.yaml | oc apply -f -
 Verify the policy is back to its original state:
 
 ```shell
-oc get authpolicy echo-auth -n tutorial-app -o jsonpath='{.status.conditions}' | python3 -m json.tool
+oc get authpolicy echo-auth -n tutorial-app -o jsonpath='{.status.conditions}' | jq .
 # Accepted: True, Enforced: True
 ```
 

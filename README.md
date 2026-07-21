@@ -18,7 +18,7 @@ Hands-on tutorial for securing, protecting, and observing APIs on OpenShift usin
 
 - OpenShift Container Platform 4.19+ with `cluster-admin` access
 - `oc` CLI installed and logged in
-- `envsubst` (GNU gettext) and `python3`
+- `envsubst` (GNU gettext) and `jq`
 - Red Hat subscription including Connectivity Link
 - cert-manager Operator for Red Hat OpenShift 1.18+ installed
 

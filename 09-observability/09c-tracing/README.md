@@ -136,18 +136,15 @@ Verify the Envoy proxy picked up the tracing configuration:
 
 ```bash
 GWPOD=$(oc get pods -n openshift-ingress -l gateway.networking.k8s.io/gateway-name=api-gateway -o jsonpath='{.items[0].metadata.name}')
-oc exec -n openshift-ingress $GWPOD -- pilot-agent request GET config_dump 2>/dev/null | python3 -c "
-import json, sys
-data = json.load(sys.stdin)
-for config in data.get('configs', []):
-    if 'ListenersConfigDump' in config.get('@type', ''):
-        for ls in config.get('dynamic_listeners', []):
-            for fc in ls.get('active_state', {}).get('listener', {}).get('filter_chains', []):
-                for f in fc.get('filters', []):
-                    tc = f.get('typed_config', {})
-                    if 'tracing' in tc:
-                        print('Tracing configured:', tc['tracing']['provider']['name'])
-"
+oc exec -n openshift-ingress $GWPOD -- pilot-agent request GET config_dump 2>/dev/null \
+  | jq -r '
+      .configs[]
+      | select(."@type" | contains("ListenersConfigDump"))
+      | .dynamic_listeners[]
+      | .active_state.listener.filter_chains[].filters[].typed_config
+      | select(has("tracing"))
+      | "Tracing configured: \(.tracing.provider.name)"
+    '
 # Should output: Tracing configured: envoy.tracers.opentelemetry
 ```
 
