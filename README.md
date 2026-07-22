@@ -2,7 +2,7 @@
 
 Hands-on tutorial for securing, protecting, and observing APIs on OpenShift using Red Hat Connectivity Link 1.3 and the Kubernetes Gateway API.
 
-If you're looking on plain Kubernetes Gateway API on OpenShift, ![here](https://examples.openshift.pub/networking/gateway-api/) you are.
+If you're looking for a plain Kubernetes Gateway API on OpenShift tutorial, [here](https://examples.openshift.pub/networking/gateway-api/) you are.
 
 ## What You'll Learn
 
